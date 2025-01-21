@@ -1,3 +1,11 @@
+---
+name: Question
+about: Ask a question or seek clarification
+title: "[Question] "
+labels: question
+assignees: ''
+---
+
 ## ❓ 질문 내용
 
 <!--- 궁금하신 점이나 질문 내용을 간결하게 작성해 주세요. -->

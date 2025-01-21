@@ -1,3 +1,11 @@
+---
+name: Task Request
+about: Request a specific task or work
+title: "[Task] "
+labels: task
+assignees: ''
+---
+
 ## 📄 작업 요청 내용
 
 <!--- 요청하신 작업의 요약 내용을 작성해 주세요. -->
