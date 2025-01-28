@@ -12,7 +12,7 @@ def add_grad_column(data):
     ]
 
     choice = ['C','B','A']
-
+    print('regression 문제를 multi classification으로 변경하였습니다.')
     data['grade'] = np.select(conditions, choice, default='C')
     return data
 
@@ -29,7 +29,7 @@ def simple_preprocessing(data, task):
             'original_value': label_encoder.classes_,
             'encoded_value': range(len(label_encoder.classes_))
         })
-        print(f"Mapping for {column}:\n", mapping_df)
+        # print(f"Mapping for {column}:\n", mapping_df)
 
     data.head(10)
 
