@@ -50,4 +50,4 @@ def automl_module(data, task, target, preset, time_to_train):
     print(f'Evaluation Results:\n{evaluation}')
     print('==============================================================\n')
 
-    return '아직 수정중에 있습니다'
+    return predictor, test_df
