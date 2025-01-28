@@ -1,11 +1,9 @@
-# auto_ml.py
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
-
-def automl_module(data, task, target):
+ 
+def automl_module(data, task, target, preset, time_to_train):
     train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
     print(train_df.head())
     
@@ -16,11 +14,11 @@ def automl_module(data, task, target):
     predictor = TabularPredictor(
         label=target,             
         problem_type=task,
-        verbosity=2
+        verbosity=1
     ).fit(
         train_data=train_df,     
-        time_limit=100,          
-        presets='best_quality'    
+        time_limit=time_to_train,          
+        presets=preset   
     )
 
     y_pred = predictor.predict(test_df.drop(columns=[target]))  
@@ -52,4 +50,4 @@ def automl_module(data, task, target):
     print(f'Evaluation Results:\n{evaluation}')
     print('==============================================================\n')
 
-    return predictor 
+    return '아직 수정중에 있습니다'
