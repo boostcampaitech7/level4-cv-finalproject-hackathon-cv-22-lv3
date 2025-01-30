@@ -51,3 +51,15 @@ def automl_module(data, task, target, preset, time_to_train):
     print('==============================================================\n')
 
     return predictor, test_df
+
+
+
+def train_model(data, task, target, selected_quality, time_to_train):
+    try:
+        model, test_df = automl_module(data, task, target, selected_quality, time_to_train)
+        # logging.info(f"The Best Model is {model}")
+    except Exception as e:
+        logging.error(f"Model training failed: {e}")
+        return
+
+    return model, test_df

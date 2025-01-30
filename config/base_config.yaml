@@ -1,0 +1,23 @@
+
+data_path: '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/mat2.csv'
+target: 'G3'
+
+quality_map:
+  0: "best_quality"
+  1: "high_quality"
+  2: "good_quality"
+  3: "medium_quality"
+
+selected_quality: 0
+time_to_train: 30
+n_trials: 50
+
+direction: "maximize" 
+target_class: "desired_class"
+
+user_fixed_features:
+  - 'age'
+  - 'sex'
+  - 'G1'
+  - 'G2'
+  - 'absences'

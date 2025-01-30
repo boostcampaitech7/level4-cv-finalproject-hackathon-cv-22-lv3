@@ -7,7 +7,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def optimize_features(
+def optimizeing_features(
     predictor: TabularPredictor,
     original_features: pd.Series,
     feature_bounds: dict,

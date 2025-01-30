@@ -5,3 +5,4 @@ boruta==0.3
 kagglehub
 
 autogluon==0.8.2
+pyyaml
