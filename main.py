@@ -7,6 +7,10 @@ from optimization.feature_optimization import feature_optimize
 from preprocessing.data_preprocessing import base_preprocessing
 
 def main():
+    """
+        전체적인 파이프라인을 관리합니다.
+        [data load -> 전처리 -> 예측 모델 학습 -> feature optimization] 
+    """
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     args = parse_arguments()
 
@@ -23,12 +27,13 @@ def main():
 
     model, test_df = train_model(data, task, target, selected_quality, time_to_train)
 
-    categorical_features = categorical_feature(data, threshold=10)
+    categorical_features = categorical_feature(data, threshold=config.get('threshold'))
     logging.info("Starting feature optimization to maximize the target variable...")
 
     original_prediction, optimized_prediction_value = feature_optimize(
-        data, task, target, direction, n_trials, target_class, test_df, model, categorical_features, fixed_features
-    )
+        data, task, target, direction, n_trials, target_class, test_df,
+        model, categorical_features, fixed_features )
 
+    
 if __name__ == '__main__':
     main()

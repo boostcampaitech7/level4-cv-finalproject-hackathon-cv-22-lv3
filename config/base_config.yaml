@@ -15,6 +15,8 @@ n_trials: 50
 direction: "maximize" 
 target_class: "desired_class"
 
+threshold: 10
+
 user_fixed_features:
   - 'age'
   - 'sex'

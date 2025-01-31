@@ -1,29 +1,46 @@
 import logging
 from .optimization import optimizeing_features
-from utils.print_feature_type import print_features_with_types, compare_features
+from utils.print_feature_type import compare_features
 import pandas as pd
 
 
 def feature_optimize(data, task, target, direction, n_trials, target_class,
                     test_df, model, categorical_features , fixed_features 
                     ):
+    """Feature를 변경하면서 모델 최적화를 진행합니다.
+
+    Args:
+        data (pd.DataFrame): 전처리된 데이터셋
+        task (str): 모델이 수항할 task
+        target (str): 최적화할 feature
+        direction (str): minimize OR maximize
+        n_trials (int): 최적화를 시도할 횟수
+        target_class (str): 최적화할 feature의 종류
+        test_df (pd.DataFrame): 테스트 데이터셋
+        model (Object): 학습된 모델
+        categorical_features (str): 카테고리 Feature들의 리스트
+        fixed_features (list): 변경 불가능한 feature
+
+    Returns:
+        original_prediction(pd.Series): 실제 feature
+        optimized_prediction_value(pd.Series) : 최적화 된 feature
+
+    """
 
     feature_columns = data.drop(columns=[target]).columns.tolist()
     features_to_optimize = [feat for feat in feature_columns if feat not in fixed_features]
-    logging.info(f"Features to optimize: {features_to_optimize}")
+    # logging.info(f"Features to optimize: {features_to_optimize}")
 
-    # 피처의 최소값과 최대값을 갖고 있는 값들의 최대, 최소로 설정
     feature_bounds = {}
     for feature in features_to_optimize:
         min_val = data[feature].min()
         max_val = data[feature].max()
         feature_bounds[feature] = (min_val, max_val)
-    logging.info(f"Feature bounds: {feature_bounds}")
+    # logging.info(f"Feature bounds: {feature_bounds}")
 
-    # 최적화할 샘플 선택 (테스트 데이터셋의 첫 번째 샘플)
     sample_idx = 0
     original_sample = test_df.iloc[sample_idx].drop(labels=[target])
-    logging.info(f"Original sample selected: {original_sample.to_dict()}")
+    # logging.info(f"Original sample selected: {original_sample.to_dict()}")
 
     try:
         optimized_features, optimized_prediction = optimizeing_features(
@@ -52,7 +69,6 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
             optimized_sample[feature] = original_sample[feature]
         else:
             logging.warning(f"Fixed feature '{feature}' not found in original sample.")
-
 
     try:
         original_prediction_series = model.predict(pd.DataFrame([original_sample.to_dict()]))

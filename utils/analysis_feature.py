@@ -12,8 +12,8 @@ def identify_categorical_features(data, threshold=10):
         list: 카테고리형 피처 리스트
     """
     categorical_features = [col for col in data.columns if data[col].nunique() <= threshold]
-    print('\n\n')
-    print(f"\nCategorical Features Identified: {categorical_features}")
-    print('\n\n')
+    # print('\n\n')
+    # print(f"\nCategorical Features Identified: {categorical_features}")
+    # print('\n\n')
 
     return categorical_features

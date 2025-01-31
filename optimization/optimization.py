@@ -36,7 +36,6 @@ def optimizeing_features(
         dict: 최적화된 피처 값
         float: 최적화된 타겟 예측 값 (회귀의 경우 예측값, 분류의 경우 클래스 확률)
     """
-    # 입력 검증
     if direction not in ['maximize', 'minimize']:
         raise ValueError("Direction must be either 'maximize' or 'minimize'")
     
@@ -48,21 +47,15 @@ def optimizeing_features(
         
         for feature, (low, high) in feature_bounds.items():
             if feature in categorical_features:
-                # 카테고리형 피처는 정수형 값을 사용
                 modified_features[feature] = trial.suggest_int(feature, low, high)
             else:
-                # 수치형 피처는 연속적인 값을 사용
                 modified_features[feature] = trial.suggest_uniform(feature, low, high)
         
-        # 예측값 계산
         modified_df = pd.DataFrame([modified_features.to_dict()])
         
         if task in ['binary', 'multiclass']:
-            # 분류 문제에서는 클래스 확률을 사용
             proba = predictor.predict_proba(modified_df)
             if task == 'binary':
-                # 바이너리 분류에서는 두 클래스의 확률이 반환됩니다.
-                # target_class가 None이면 긍정 클래스(보통 1)를 사용
                 if target_class is None:
                     target_class_proba = proba.iloc[0, 1]
                 else:
@@ -70,29 +63,24 @@ def optimizeing_features(
                         raise ValueError(f"target_class '{target_class}' not found in model's class labels.")
                     target_class_proba = proba.iloc[0, predictor.class_labels.index(target_class)]
             else:
-                # 멀티클래스 분류에서는 target_class를 지정해야 합니다.
                 if target_class is None:
-                    # 지정하지 않으면 마지막 클래스를 사용
                     target_class = predictor.class_labels[-1]
                 if target_class not in predictor.class_labels:
                     raise ValueError(f"target_class '{target_class}' not found in model's class labels.")
                 target_class_proba = proba.iloc[0, predictor.class_labels.index(target_class)]
             
-            logger.debug(f"Modified Features: {modified_features.to_dict()}")
-            logger.debug(f"Prediction Probabilities: {proba}")
-            logger.debug(f"Target Class Probability ({target_class}): {target_class_proba}")
+            # logger.debug(f"Modified Features: {modified_features.to_dict()}")
+            # logger.debug(f"Prediction Probabilities: {proba}")
+            # logger.debug(f"Target Class Probability ({target_class}): {target_class_proba}")
             
-            # Optuna는 'maximize' 또는 'minimize' 방향을 사용하므로, 'minimize'일 때는 부호를 반전
             return target_class_proba if direction == 'maximize' else -target_class_proba
         
         elif task == 'regression':
-            # 회귀 문제에서는 예측값 자체를 사용
             prediction = predictor.predict(modified_df).iloc[0]
-            logger.debug(f"Modified Features: {modified_features.to_dict()}")
-            logger.debug(f"Prediction: {prediction}")
+            # logger.debug(f"Modified Features: {modified_features.to_dict()}")
+            # logger.debug(f"Prediction: {prediction}")
             return prediction if direction == 'maximize' else -prediction
 
-    # Optuna 스터디 생성 시 방향 설정
     study = optuna.create_study(direction=direction)
     study.optimize(objective, n_trials=n_trials)
     
@@ -101,7 +89,7 @@ def optimizeing_features(
     
     for feature in feature_bounds.keys():
         if feature in categorical_features:
-            best_features[feature] = int(best_trial.params[feature])  # 정수형으로 변환
+            best_features[feature] = int(best_trial.params[feature]) 
         else:
             best_features[feature] = best_trial.params[feature]
     
@@ -115,7 +103,6 @@ def optimizeing_features(
             raise ValueError(f"target_class '{target_class}' not found in model's class labels.")
         
         best_prediction = best_trial.value if direction == 'maximize' else -best_trial.value
-        # 'minimize'일 경우 확률을 원래대로 돌려놓음
         if direction == 'minimize':
             best_prediction = best_prediction * -1
     elif task == 'regression':

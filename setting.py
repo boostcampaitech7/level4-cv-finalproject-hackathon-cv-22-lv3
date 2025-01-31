@@ -1,3 +1,6 @@
+import logging
+import pandas as pd
+
 def data_setting(config):
     """
     데이터를 불러오고, 모델 학습 및 최적화에 필요한 설정 값들을 추출하는 함수입니다.

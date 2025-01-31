@@ -4,12 +4,28 @@ from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_sc
 from autogluon.tabular import TabularPredictor
  
 def automl_module(data, task, target, preset, time_to_train):
+    """Autogluon 라이브러리를 활용하여 자동으로 모델을 실행시킵니다.
+
+    Args:
+        data (pd.DataFrame): 전처리된 데이터셋
+        task (str): 수행할 task
+        target (str): 최적화 할 feature
+        preset (int): 모델의 정도
+        time_to_train (int): 학습 시간
+
+    Raises:
+        KeyError: target이 데이터셋에 존재하지 않는 경우 에러 발생
+        ValueError: task type이 예상치 못한 답을 얻는 경우 에러 발생
+
+    Returns:
+        predictor(Object): 학습된 모델
+        test_df(pd.DataFrame) : test에 사용된 데이터셋
+    """
     train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
     print(train_df.head())
     
     if target not in train_df.columns:
         raise KeyError(f"Label column '{target}' is missing from training data. Training data columns: {list(train_df.columns)}")
-
 
     predictor = TabularPredictor(
         label=target,             
@@ -41,7 +57,6 @@ def automl_module(data, task, target, preset, time_to_train):
     leaderboard = predictor.leaderboard(test_df, silent=True)
     print(f'LeaderBoard Result :\n{leaderboard}')
 
-
     feature_importance = predictor.feature_importance(test_df)
     print(f'Feature Importance:\n{feature_importance}')
     print('==============================================================\n')
@@ -55,9 +70,21 @@ def automl_module(data, task, target, preset, time_to_train):
 
 
 def train_model(data, task, target, selected_quality, time_to_train):
+    """auto_ml을 실행시킨다
+
+    Args:
+        data (pd.DataFrame): 전처리된 데이터셋
+        task (str): 수행할 task
+        target (str): 최적화 할 feature
+        preset (int): 모델의 정도
+        time_to_train (int): 학습 시간
+
+    Returns:
+        model(Object): 학습된 모델
+        test_df(pd.DataFrame) : test에 사용된 데이터셋
+    """
     try:
         model, test_df = automl_module(data, task, target, selected_quality, time_to_train)
-        # logging.info(f"The Best Model is {model}")
     except Exception as e:
         logging.error(f"Model training failed: {e}")
         return

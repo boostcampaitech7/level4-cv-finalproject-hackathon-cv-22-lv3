@@ -1,5 +1,5 @@
 from determine_feature import determine_problem_type, auto_determine_fixed_features
-from simple_preprocessing import simple_preprocessing, add_grad_column
+from preprocessing.simple_preprocessing import simple_preprocessing, add_grad_column
 import logging
 
 def base_preprocessing(config, data, target):
