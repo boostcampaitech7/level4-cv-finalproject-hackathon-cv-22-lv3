@@ -22,7 +22,7 @@ def automl_module(data, task, target, preset, time_to_train):
         test_df(pd.DataFrame) : test에 사용된 데이터셋
     """
     train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
-    print(train_df.head())
+    # print(train_df.head())
     
     if target not in train_df.columns:
         raise KeyError(f"Label column '{target}' is missing from training data. Training data columns: {list(train_df.columns)}")
@@ -60,9 +60,11 @@ def automl_module(data, task, target, preset, time_to_train):
     feature_importance = predictor.feature_importance(test_df)
     print(f'Feature Importance:\n{feature_importance}')
     print('==============================================================\n')
+    print('==============================================================\n')
 
     evaluation = predictor.evaluate(test_df)
     print(f'Evaluation Results:\n{evaluation}')
+    print('==============================================================\n')
     print('==============================================================\n')
 
     return predictor, test_df

@@ -25,21 +25,21 @@ def determine_problem_type(data, target, threshold=10):
     if pd.api.types.is_numeric_dtype(target_series):
         num_unique = target_series.nunique()
         if num_unique <= 2:
-            print('____해당 task는 binary classification 입니다.____')
+            print('\n=================해당 task는 binary classification 입니다.=================\n')
             return 'binary'
         elif num_unique <= threshold:
-            print('____해당 task는 multiclass 입니다.____')
+            print('\n=================해당 task는 multiclass 입니다.=================\n')
             return 'multiclass'
         else:
-            print('____해당 task는 Regression 입니다.____')
+            print('\n================해당 task는 Regression 입니다.=================\n')
             return 'regression'
     else:
         num_unique = target_series.nunique()
         if num_unique == 2:
-            print('____해당 task는 binary classification 입니다.____')
+            print('\n=================해당 task는 binary classification 입니다.=================\n')
             return 'binary'
         elif num_unique > 2:
-            print('____해당 task는 multiclass 입니다.____')
+            print('\n=================해당 task는 multiclass 입니다.=================\n')
             return 'multiclass'
         else:
             raise ValueError(f"타겟 컬럼 '{target}'은(는) 고유 값이 하나뿐입니다.")

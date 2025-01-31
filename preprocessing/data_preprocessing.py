@@ -1,4 +1,4 @@
-from determine_feature import determine_problem_type, auto_determine_fixed_features
+from utils.determine_feature import determine_problem_type, auto_determine_fixed_features
 from preprocessing.simple_preprocessing import simple_preprocessing, add_grad_column
 import logging
 

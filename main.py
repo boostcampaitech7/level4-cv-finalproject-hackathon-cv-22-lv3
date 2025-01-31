@@ -1,8 +1,8 @@
 import logging
-from auto_ml import train_model
-from determine_feature import categorical_feature
+from optimization.auto_ml import train_model
+from utils.determine_feature import categorical_feature
 from utils.config import load_config, parse_arguments
-from setting import data_setting
+from utils.setting import data_setting
 from optimization.feature_optimization import feature_optimize
 from preprocessing.data_preprocessing import base_preprocessing
 

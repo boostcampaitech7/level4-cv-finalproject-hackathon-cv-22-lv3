@@ -28,14 +28,21 @@ def data_setting(config):
 
     user_fixed_features = config.get('user_fixed_features', [])
     fixed_features = list(set(user_fixed_features))
-    logging.info(f"Fixed Features (Not to be optimized): {fixed_features}")
+    logging.info("============================================")
+    logging.info("| Fixed Features (Not to be optimized) ")
+    logging.info(f"| {fixed_features} ")
+    logging.info("============================================\n\n")
+
 
     quality_map = config.get('quality_map')
     selected_quality = quality_map.get(config.get('selected_quality', 0), "Invalid selection")
     if selected_quality == "Invalid selection":
         logging.error("Invalid quality selection. Please choose a valid option from quality_map.")
         return
-    logging.info(f"Selected quality: {selected_quality}")
+    logging.info("============================================")
+    logging.info("| quality")
+    logging.info(f"| {selected_quality}")
+    logging.info("============================================\n\n")
 
     time_to_train = config.get('time_to_train', 500)
     n_trials = config.get('n_trials', 100)
