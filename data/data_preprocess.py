@@ -21,23 +21,33 @@ class DataPreprocessor:
         self.data_info = data_info
         self.decoders = {}
 
-    def remove_outliers(self, columns, z_thresh=3):
+    def remove_outliers(self, columns):
         '''
-        summary: 지정된 열에서 z-score를 기준으로 이상치를 제거합니다.
+        summary: 지정된 열에서 IQR(Interquartile Range)를 기준으로 이상치를 제거합니다.
 
         args: 
             columns (list): 이상치를 제거할 열 이름 목록.
-            z_thresh (float): z-score 임계값. 기본값은 3입니다.
-        
+
         return: 
             pd.DataFrame: 이상치가 제거된 데이터프레임.
         '''
         for col in columns:
             feature = self.data_info[col]
+
+            # 수치형 변수만 처리
             if feature["type"] == "Numeric":
-                z_scores = (self.data[col] - feature["mean"]) / feature["std"]
-                self.data = self.data[np.abs(z_scores) <= z_thresh]
-        
+                # Q1, Q3 및 IQR 계산
+                Q1 = self.data[col].quantile(0.25)
+                Q3 = self.data[col].quantile(0.75)
+                IQR = Q3 - Q1
+
+                # 이상치 기준 계산
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
+
+                # 이상치 제거
+                self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
+
         return self.data
 
     def handle_missing_values(self, col, strategy="mean"):
