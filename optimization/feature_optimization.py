@@ -60,7 +60,7 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
         return
 
 
-    compare_features(original_sample, pd.Series(optimized_features), categorical_features)
+    comparison_df = compare_features(original_sample, pd.Series(optimized_features), categorical_features)
 
     
     optimized_sample = optimized_features.copy()
@@ -91,4 +91,4 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
     print(f"\nOriginal Prediction: {original_prediction}")
     print(f"Optimized Prediction: {optimized_prediction_value}")
 
-    return original_prediction, optimized_prediction_value
+    return comparison_df, original_prediction, optimized_prediction_value
