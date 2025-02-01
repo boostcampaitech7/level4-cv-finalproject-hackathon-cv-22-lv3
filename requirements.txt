@@ -5,7 +5,8 @@ boruta==0.3
 kagglehub
 
 ydata_profiling==4.12.2
-pydantic==1.10.8
+pydantic==1.10.21
+pydantic_core==2.27.2
 
 autogluon==0.8.2
 pyyaml
