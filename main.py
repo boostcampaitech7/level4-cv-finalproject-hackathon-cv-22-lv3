@@ -5,6 +5,7 @@ from utils.config import load_config, parse_arguments
 from utils.setting import data_setting
 from optimization.feature_optimization import feature_optimize
 from preprocessing.data_preprocessing import base_preprocessing
+import pandas as pd
 
 def main_pipline():
     """

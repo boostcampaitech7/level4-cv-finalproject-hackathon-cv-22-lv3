@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 from ydata_profiling import ProfileReport
 
 
-def get_json(file_path, save_path):
+def get_json(data, save_path='/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/eda/student_math'):
     '''
     summary: ydata_profiling 라이브러리로 EDA 결과를 JSON 파일로 저장합니다.
 
@@ -21,8 +21,7 @@ def get_json(file_path, save_path):
         os.makedirs(save_path)
         print(f"폴더가 생성되었습니다: {save_path}")
 
-    df = pd.read_csv(file_path)
-    profile = ProfileReport(df, explorative=True)
+    profile = ProfileReport(data, explorative=True)
     json_file_path = osp.join(save_path, 'result.json')
     profile.to_file(json_file_path)
 
