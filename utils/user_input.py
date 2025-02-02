@@ -9,6 +9,10 @@ def create_config_from_input():
     """
     config = {}
 
+    # 사용자 이름과 이메일 입력 받기
+    config["user_name"] = input("사용자 이름을 입력하세요: ")
+    config["user_email"] = input("사용자 이메일을 입력하세요: ")
+
     config["data_path"] = input("데이터 파일 경로를 입력하세요: ")
     config["target"] = input("타깃 컬럼 이름을 입력하세요: ")
 
@@ -32,16 +36,14 @@ def create_config_from_input():
     config["n_trials"] = int(input("최적화 시도 횟수를 입력하세요: "))
     config["direction"] = input("최적화 방향을 입력하세요 (minimize/maximize): ")
     config["target_class"] = input("target_class를 입력하세요 (예: desired_class): ")
-    config["threshold"] = int(input("threshold 값을 입력하세요: "))
+    # config["threshold"] = int(input("threshold 값을 입력하세요: "))
 
     # 고정 피처 목록 (콤마로 구분하여 입력)
     features = input("최적화에서 제외할 피처들을 콤마로 구분하여 입력하세요 (예: age, sex, G1, G2, absences): ")
     config["user_fixed_features"] = [feat.strip() for feat in features.split(",") if feat.strip()]
 
+
     # 사용자가 입력한 파일명으로 저장할 것이므로, base_config_path는 사용자 입력 파일명을 사용합니다.
-    # (즉, 별도의 고정된 경로를 사용하지 않습니다.)
-    
-    # 저장할 파일명 입력 (YAML 또는 JSON 형식)
     config_filename = input("설정 파일을 저장할 파일명을 입력하세요 (예: config.yaml 또는 config.json): ")
 
     # 기본 저장 폴더 (절대 경로가 아닌 경우 기본 폴더를 붙임)
@@ -49,7 +51,7 @@ def create_config_from_input():
     if not os.path.isabs(config_filename):
         config_filename = os.path.join(default_config_folder, config_filename)
 
-    # 여기서 base_config_path 항목을 사용자가 입력한 파일명을 그대로 사용하도록 설정
+    # base_config_path 항목에 사용자가 입력한 파일명을 그대로 사용
     config["base_config_path"] = config_filename
 
     # 파일 확장자에 따라 YAML 또는 JSON으로 저장
@@ -67,3 +69,8 @@ def create_config_from_input():
 
     print(f"설정 파일이 성공적으로 저장되었습니다: {config_filename}")
     return config, config_filename
+
+if __name__ == "__main__":
+    config, config_filename = create_config_from_input()
+    print("생성된 설정:")
+    print(json.dumps(config, indent=4, ensure_ascii=False))

@@ -25,8 +25,8 @@ def base_preprocessing(config, data, target):
         task = determine_problem_type(data, target)
         # data = simple_preprocessing(data, task)
 
-        json_file_path = get_json(data) # 여기서 result.json을 생성합니다.
-        filtered_data, merged_file_path = filter_json(json_file_path, config.get('base_config_path'))
+        json_file_path = get_json(config, data) # 여기서 result.json을 생성합니다.
+        filtered_data, merged_file_path = filter_json(config, json_file_path, config.get('base_config_path'))
         preprocessor = DataPreprocessor(data, filtered_data)
         processed_df = preprocessor.process_features(strategy="knn")
         # df = preprocessor.remove_outliers(df, columns=cols) # 이상치 처리시 활성화 (단, 이것도 col 설정해줘야함 )
@@ -42,4 +42,4 @@ def base_preprocessing(config, data, target):
         return
     target_class = config.get('target_class', '') 
 
-    return json_file_path, task, processed_df, direction, target_class
+    return merged_file_path, task, processed_df, direction, target_class
