@@ -26,8 +26,8 @@ def base_preprocessing(config, data, target):
         task = determine_problem_type(data, target)
         # data = simple_preprocessing(data, task)
 
-        json_file_path = get_json(data)
-        filtered_data = filter_json(json_file_path)
+        json_file_path = get_json(data) # 여기서 result.json을 생성합니다.
+        filtered_data = filter_json(json_file_path) # 여기서 
         preprocessor = DataPreprocessor(data, filtered_data)
         processed_df = preprocessor.process_features(strategy="knn")
         # df = preprocessor.remove_outliers(df, columns=cols) # 이상치 처리시 활성화 (단, 이것도 col 설정해줘야함 )
