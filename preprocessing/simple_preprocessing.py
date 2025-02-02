@@ -17,23 +17,3 @@ def add_grad_column(data):
     return data
 
 
-
-def simple_preprocessing(data, task):
-    label_encoder = LabelEncoder()
-    object_columns = data.select_dtypes(include=['object','bool']).columns.tolist()
-
-    for column in object_columns:
-        data[column] = label_encoder.fit_transform(data[column])
-
-        mapping_df = pd.DataFrame({
-            'original_value': label_encoder.classes_,
-            'encoded_value': range(len(label_encoder.classes_))
-        })
-        # print(f"Mapping for {column}:\n", mapping_df)
-
-    data.head(10)
-
-    data = data.drop(['Unnamed: 0'], axis='columns')
-
-    return data
-    

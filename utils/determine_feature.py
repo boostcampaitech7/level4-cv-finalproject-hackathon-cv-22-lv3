@@ -45,51 +45,11 @@ def determine_problem_type(data, target, threshold=10):
             raise ValueError(f"타겟 컬럼 '{target}'은(는) 고유 값이 하나뿐입니다.")
 
 
-
-
-def auto_determine_fixed_features(data, target, threshold=0.01):
-    """
-    자동으로 고정할 피처를 결정합니다.
-    
-    Parameters:
-    - data (DataFrame): 데이터셋
-    - target (str): 타겟 변수
-    - threshold (float): 상관관계 절대값 기준
-    
-    Returns:
-    - fixed_features (list): 고정할 피처 리스트
-    """
-    fixed_features = []
-    
-    # 1. ID 피처 감지 (예: 피처 이름에 'id' 포함)
-    id_features = [col for col in data.columns if 'id' in col.lower()]
-    fixed_features.extend(id_features)
-    
-    # 2. 날짜/시간 피처 감지
-    date_features = []
-    for col in data.columns:
-        if pd.api.types.is_datetime64_any_dtype(data[col]):
-            date_features.append(col)
-    fixed_features.extend(date_features)
-    
-    # # 3. 상수 피처 감지
-    # constant_features = [col for col in data.columns if data[col].nunique() == 1]
-    # fixed_features.extend(constant_features)
-    
-    # 4. 낮은 상관관계 피처 감지
-    correlation = data.corr()[target].abs()
-    low_corr_features = correlation[correlation < threshold].index.tolist()
-    fixed_features.extend(low_corr_features)
-    
-    # 중복 제거
-    fixed_features = list(set(fixed_features))
-    
-    return fixed_features
-
-
-def categorical_feature(data, threshold=10):    
+def categorical_feature(data, json_file_path):    
     try:
-        categorical_features = identify_categorical_features(data, threshold=10)
+        categorical_features = identify_categorical_features(json_file_path)
+        # categorical_features = identify_categorical_features(data,10)
+
         logging.info(f"Identified categorical features: {categorical_features}")
     except Exception as e:
         logging.error(f"Failed to identify categorical features: {e}")
