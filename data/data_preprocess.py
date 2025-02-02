@@ -123,14 +123,15 @@ class DataPreprocessor:
         return:
             None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
         '''
-        # Label Encoding 적용
-        le = LabelEncoder()
-        self.data[col] = le.fit_transform(self.data[col])
-        
-        # 인코더 정보 저장
-        self.decoders[col] = {
-            'encoder': le,
-            }
+        if not np.issubdtype(self.data[col].dtype, np.integer):    
+            # Label Encoding 적용
+            le = LabelEncoder()
+            self.data[col] = le.fit_transform(self.data[col])
+            
+            # 인코더 정보 저장
+            self.decoders[col] = {
+                'encoder': le,
+                }
 
     def _numeric_features(self, col):
         '''
@@ -240,7 +241,7 @@ class DataPreprocessor:
                 errors='coerce'
             )
     
-            # 변환된 연, 월, 일 컬럼 삭제 (선택 사항)
+            # 변환된 연, 월, 일 컬럼 삭제
             self.data.drop(columns=encoder_info['columns'], inplace=True)
 
         return self.data
@@ -248,13 +249,13 @@ class DataPreprocessor:
 
 if __name__ == "__main__":
     # CSV 파일 로드
-    df = pd.read_csv("/data/ephemeral/home/data/time/DailyDelhiClimateTrain.csv")
+    df = pd.read_csv("/data/ephemeral/home/data/student/mat2.csv")
     print("초기 데이터 정보:")
     print(df.head())
     print(df.info())
 
     # 데이터 EDA 정보를 JSON에서 로드
-    data_info = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/eda/time_data/filtered_result.json')
+    data_info = OmegaConf.load('/data/ephemeral/home/filtered_result.json')
 
     # 데이터 전처리 객체 생성
     if "Unnamed: 0" in df.columns:
