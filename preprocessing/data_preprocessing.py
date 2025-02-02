@@ -43,4 +43,4 @@ def base_preprocessing(config, data, target):
         return
     target_class = config.get('target_class', '') 
 
-    return task, processed_df, direction, target_class
+    return json_file_path, task, processed_df, direction, target_class

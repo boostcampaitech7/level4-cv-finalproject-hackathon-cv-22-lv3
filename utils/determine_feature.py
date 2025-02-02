@@ -87,9 +87,9 @@ def auto_determine_fixed_features(data, target, threshold=0.01):
     return fixed_features
 
 
-def categorical_feature(data, threshold=10):    
+def categorical_feature(data, json_file_path):    
     try:
-        categorical_features = identify_categorical_features(data, threshold=10)
+        categorical_features = identify_categorical_features(json_file_path)
         logging.info(f"Identified categorical features: {categorical_features}")
     except Exception as e:
         logging.error(f"Failed to identify categorical features: {e}")

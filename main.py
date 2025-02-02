@@ -24,11 +24,11 @@ def main_pipline():
 
     data, target, fixed_features, selected_quality, time_to_train, n_trials = data_setting(config)
 
-    task, data, direction, target_class = base_preprocessing(config, data, target)
+    json_file_path, task, data, direction, target_class = base_preprocessing(config, data, target)
 
     model, test_df = train_model(data, task, target, selected_quality, time_to_train)
 
-    categorical_features = categorical_feature(data, threshold=config.get('threshold'))
+    categorical_features = categorical_feature(data, json_file_path)
     logging.info("Starting feature optimization to maximize the target variable...")
 
     comparison_df, original_prediction, optimized_prediction_value = feature_optimize(
