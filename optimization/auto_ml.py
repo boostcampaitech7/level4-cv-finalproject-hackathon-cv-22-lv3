@@ -9,7 +9,7 @@ def automl_module(data, task, target, preset, time_to_train):
     Args:
         data (pd.DataFrame): 전처리된 데이터셋
         task (str): 수행할 task
-        target (str): 최적화 할 feature
+        target (str): target feature
         preset (int): 모델의 정도
         time_to_train (int): 학습 시간
 
@@ -21,7 +21,7 @@ def automl_module(data, task, target, preset, time_to_train):
         predictor(Object): 학습된 모델
         test_df(pd.DataFrame) : test에 사용된 데이터셋
     """
-    train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
+    train_df, test_df = train_test_split(data, test_size=0.2, random_state=42, stratify=data[target])
     # print(train_df.head())
     
     if target not in train_df.columns:
@@ -33,7 +33,7 @@ def automl_module(data, task, target, preset, time_to_train):
         verbosity=1
     ).fit(
         train_data=train_df,     
-        time_limit=time_to_train,          
+        time_limit=time_to_train,
         presets=preset   
     )
 
