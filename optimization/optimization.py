@@ -13,7 +13,7 @@ def optimizeing_features(
     feature_bounds: dict,
     categorical_features: list,
     task: str,
-    direction: str = 'maximize',
+    direction: str,
     n_trials: int = 100,
     target_class: str = None
 ):
@@ -72,11 +72,11 @@ def optimizeing_features(
                     raise ValueError(f"target_class '{local_target_class}' not found in model's class labels.")
                 target_class_proba = proba.iloc[0, predictor.class_labels.index(local_target_class)]
             
-            return target_class_proba if direction == 'maximize' else -target_class_proba
+            return target_class_proba 
         
         elif task == 'regression':
             prediction = predictor.predict(modified_df).iloc[0]
-            return prediction if direction == 'maximize' else -prediction
+            return prediction 
 
     study = optuna.create_study(direction=direction)
     study.optimize(objective, n_trials=n_trials)
