@@ -6,10 +6,6 @@ from omegaconf import OmegaConf
 from ydata_profiling import ProfileReport
 
 
-import os
-import os.path as osp
-from ydata_profiling import ProfileReport
-
 def get_json(config, data, save_path='/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/ydata_profiling'):
     """
     summary: ydata_profiling 라이브러리로 EDA 결과를 JSON 파일로 저장합니다.

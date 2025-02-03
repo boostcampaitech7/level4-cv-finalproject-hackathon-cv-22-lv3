@@ -1,80 +1,39 @@
 import openai
-import os
-import time
+import pandas as p
 from main import main_pipline
-from openai.error import RateLimitError, OpenAIError  # 예외 클래스 임포트
-import logging
+openai.api_key = "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"
+# 예시: main_pipeline() 실행 후 결과 받기
+comparison_df, original_prediction, optimized_prediction_value = main_pipline()
 
-# 로깅 설정
-logging.basicConfig(level=logging.INFO, filename='app.log',
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+def get_solution_from_llm(comparison_df):
+    # comparison_df가 DataFrame이 아니라 문자열이면, 바로 사용
+    if isinstance(comparison_df, str):
+        df_json = comparison_df
+    else:
+        df_json = comparison_df.to_json(orient="records", force_ascii=False, indent=2)
+    
+    prompt = f"""
+    아래는 모델의 feature optimization 결과를 담은 JSON 데이터입니다:
+    
+    {df_json}
+    
+    이 데이터를 바탕으로, Prescriptive AI로써 고객에게 Target의 값을 최적화하기 위한 solution을 제공해주세요.
+    """
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a data scientist expert."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=800,
+        temperature=0.7
+    )
+    
+    solution = response['choices'][0]['message']['content']
+    return solution
 
-# 환경 변수에서 API 키 가져오기
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("API 키가 환경 변수에 설정되지 않았습니다.")
-
-openai.api_key = OPENAI_API_KEY
-
-# 사용할 모델 지정
-model = "text-embedding-3-small"
-
-# 분석 파이프라인 실행
-comparison_df, origin, predict = main_pipline()
-
-# 데이터프레임 요약 (필요 시 수정)
-if hasattr(comparison_df, 'describe'):
-    comparison_summary = comparison_df.describe().to_string()
-else:
-    comparison_summary = str(comparison_df)
-
-
-# print(comparison_summary)
-
-# 분석 프롬프트 생성
-analysis_prompt = f"""
-다음 텍스트를 분석해주세요. Prescriptive AI처럼 답변해주세요:
-result 요약: {comparison_summary}
-"""
-
-# 메시지 구성
-messages = [
-    {
-        "role": "system",
-        "content": "You are a helpful assistant."
-    },
-    {
-        "role": "user",
-        "content": analysis_prompt
-    }
-]
-
-# 재시도 로직 설정 (Exponential Backoff)
-max_retries = 5
-retry_delay = 1  # 초기 지연 시간 (초)
-
-for attempt in range(max_retries):
-    try:
-        # ChatCompletion API 호출
-        response = openai.ChatCompletion.create(
-            model=model,
-            messages=messages,
-            max_tokens=150  # 응답 최대 토큰 수 설정 (필요 시 조정)
-        )
-        analysis_answer = response.choices[0].message.content
-        print("=== 분석 결과 ===")
-        print(analysis_answer)
-        logging.info("API 호출 성공.")
-        break  # 성공 시 루프 종료
-    except RateLimitError:
-        logging.warning(f"Rate limit exceeded on attempt {attempt + 1}. Retrying in {retry_delay} seconds...")
-        print(f"Rate limit exceeded. Attempt {attempt + 1} of {max_retries}. Retrying in {retry_delay} seconds...")
-        time.sleep(retry_delay)
-        retry_delay *= 2  # 지연 시간 증가
-    except OpenAIError as e:
-        logging.error(f"An OpenAI error occurred: {e}")
-        print(f"An OpenAI error occurred: {e}")
-        break
-else:
-    logging.error("Failed to get a response after multiple attempts due to rate limits.")
-    print("Failed to get a response after multiple attempts due to rate limits.")
+# GPT API를 사용하여 solution 받기
+solution = get_solution_from_llm(comparison_df)
+print("LLM이 제시한 솔루션:")
+print(solution)
