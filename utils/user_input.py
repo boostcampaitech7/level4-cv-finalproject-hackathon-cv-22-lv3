@@ -50,6 +50,9 @@ def create_config_from_input():
     default_config_folder = "/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/config"
     if not os.path.isabs(config_filename):
         config_filename = os.path.join(default_config_folder, config_filename)
+    
+    # 폴더가 없으면 생성
+    os.makedirs(os.path.dirname(config_filename), exist_ok=True)
 
     # base_config_path 항목에 사용자가 입력한 파일명을 그대로 사용
     config["base_config_path"] = config_filename
