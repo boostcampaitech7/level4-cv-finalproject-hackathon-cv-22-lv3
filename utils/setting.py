@@ -1,5 +1,7 @@
 import logging
 import pandas as pd
+import os
+import json
 
 
 def data_setting(config):
@@ -49,3 +51,27 @@ def data_setting(config):
     n_trials = config.get('n_trials', 100)
 
     return data, target, fixed_features, selected_quality, time_to_train, n_trials
+
+
+
+def visualization_feature(data_path):
+    """
+    summary: JSON 파일에서 Feature 목록을 추출하여 시각화합니다.
+
+    args:
+        json_file_path (str): JSON 파일 경로
+    
+    return:
+        None (시각화 결과 출력)
+    """
+
+    # JSON 파일 로드
+    if not os.path.exists(data_path):
+        print(f"파일을 찾을 수 없습니다: {data_path}")
+        return
+
+    with open(data_path, 'r', encoding='utf-8') as f:
+        eda_data = json.load(f)
+
+    features = list(eda_data.get('variables', {}).keys())
+    return features

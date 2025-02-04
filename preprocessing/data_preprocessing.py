@@ -1,6 +1,6 @@
 from utils.determine_feature import determine_problem_type
 import logging
-from data.data_info import get_json, filter_json
+# from data.data_info import get_json, filter_json
 from data.data_preprocess import DataPreprocessor
 import pandas as pd
 
@@ -25,7 +25,7 @@ def base_preprocessing(config, data, target):
         task = determine_problem_type(data, target)
         # data = simple_preprocessing(data, task)
 
-        json_file_path = get_json(config, data) # 여기서 result.json을 생성합니다.
+        json_file_path,eda_html_path = get_json(config, data) 
         filtered_data, merged_file_path = filter_json(config, json_file_path, config.get('base_config_path'))
         preprocessor = DataPreprocessor(data, filtered_data)
         processed_df = preprocessor.process_features(strategy="knn")
@@ -42,4 +42,4 @@ def base_preprocessing(config, data, target):
         return
     target_class = config.get('target_class', '') 
 
-    return merged_file_path, task, processed_df, direction, target_class
+    return merged_file_path, task, processed_df, direction, target_class, eda_html_path
