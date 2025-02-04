@@ -2,7 +2,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
- 
+
+
 def automl_module(data, task, target, preset, time_to_train):
     """Autogluon 라이브러리를 활용하여 자동으로 모델을 실행시킵니다.
 
