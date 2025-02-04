@@ -13,7 +13,7 @@ def optimizeing_features(
     feature_bounds: dict,
     categorical_features: list,
     task: str,
-    direction: str = 'maximize',
+    direction: str,
     n_trials: int = 100,
     target_class: str = None
 ):
@@ -55,31 +55,28 @@ def optimizeing_features(
         
         if task in ['binary', 'multiclass']:
             proba = predictor.predict_proba(modified_df)
+            # 외부 target_class 값을 복사
+            local_target_class = target_class  
+            
             if task == 'binary':
-                if target_class is None:
+                if local_target_class is None:
                     target_class_proba = proba.iloc[0, 1]
                 else:
-                    if target_class not in predictor.class_labels:
-                        raise ValueError(f"target_class '{target_class}' not found in model's class labels.")
-                    target_class_proba = proba.iloc[0, predictor.class_labels.index(target_class)]
-            else:
-                if target_class is None:
-                    target_class = predictor.class_labels[-1]
-                if target_class not in predictor.class_labels:
-                    raise ValueError(f"target_class '{target_class}' not found in model's class labels.")
-                target_class_proba = proba.iloc[0, predictor.class_labels.index(target_class)]
+                    if local_target_class not in predictor.class_labels:
+                        raise ValueError(f"target_class '{local_target_class}' not found in model's class labels.")
+                    target_class_proba = proba.iloc[0, predictor.class_labels.index(local_target_class)]
+            else:  # multiclass
+                if local_target_class is None:
+                    local_target_class = predictor.class_labels[-1]
+                if local_target_class not in predictor.class_labels:
+                    raise ValueError(f"target_class '{local_target_class}' not found in model's class labels.")
+                target_class_proba = proba.iloc[0, predictor.class_labels.index(local_target_class)]
             
-            # logger.debug(f"Modified Features: {modified_features.to_dict()}")
-            # logger.debug(f"Prediction Probabilities: {proba}")
-            # logger.debug(f"Target Class Probability ({target_class}): {target_class_proba}")
-            
-            return target_class_proba if direction == 'maximize' else -target_class_proba
+            return target_class_proba 
         
         elif task == 'regression':
             prediction = predictor.predict(modified_df).iloc[0]
-            # logger.debug(f"Modified Features: {modified_features.to_dict()}")
-            # logger.debug(f"Prediction: {prediction}")
-            return prediction if direction == 'maximize' else -prediction
+            return prediction 
 
     study = optuna.create_study(direction=direction)
     study.optimize(objective, n_trials=n_trials)
