@@ -22,6 +22,7 @@ def get_json(config, data, save_path='/data/ephemeral/home/level4-cv-finalprojec
     return:
         str: 저장된 JSON 파일의 경로
     """
+    data = pd.read_csv(file_path)
 
     # 디렉터리 유무 확인 후 생성
     if not osp.exists(save_path):
@@ -83,7 +84,7 @@ def filter_json(config, json_file_path, base_config_path='/data/ephemeral/home/l
             'range': info.get('range', None),
             'iqr': info.get('iqr', None)
         }
-        for var_name, info in eda_data.get('variables', {}).items() if var_name != 'Unnamed: 0'
+        for var_name, info in eda_data.get('variables', {}).items()
     }
 
     # 3. 기본 설정 파일(base_config.json)이 존재하면 불러오고, 없으면 빈 딕셔너리 생성
@@ -123,7 +124,8 @@ def filter_json(config, json_file_path, base_config_path='/data/ephemeral/home/l
 
 
 if __name__ == "__main__":
-    file_path = '/data/ephemeral/home/data/mat2.csv'
-    save_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/eda/student_math'
-    json_path = get_json(file_path, save_path)
+    config = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/config/user_config.json')
+    file_path = '/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    save_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/ydata_profiling'
+    json_path = get_json(config, file_path, save_path)
     data_info = filter_json(json_path)
