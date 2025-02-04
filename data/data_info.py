@@ -78,7 +78,10 @@ def filter_json(config, json_file_path, base_config_path='/data/ephemeral/home/l
             'skewness': info.get('skewness', None),
             'mad': info.get('mad', None),
             'range': info.get('range', None),
-            'iqr': info.get('iqr', None)
+            'iqr': info.get('iqr', None),
+            'range': info.get('range', None),
+            'Q1': info.get('25%', None),
+            'Q3': info.get('75%', None)
         }
         for var_name, info in eda_data.get('variables', {}).items()
     }
