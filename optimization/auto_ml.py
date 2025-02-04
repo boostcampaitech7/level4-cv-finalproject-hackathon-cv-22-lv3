@@ -66,7 +66,6 @@ def automl_module(data, task, target, preset, time_to_train):
     print(f'Evaluation Results:\n{evaluation}')
     print('==============================================================\n')
     print('==============================================================\n')
-
     return predictor, test_df
 
 
@@ -87,6 +86,9 @@ def train_model(data, task, target, selected_quality, time_to_train):
     """
     try:
         model, test_df = automl_module(data, task, target, selected_quality, time_to_train)
+        print('AutoGLuon에서 기대하는 클래스\n\n\n\n')
+        print(model.class_labels)
+        print('\n\n==========================================\n')
     except Exception as e:
         logging.error(f"Model training failed: {e}")
         return

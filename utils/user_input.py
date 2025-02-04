@@ -35,7 +35,12 @@ def create_config_from_input():
     config["time_to_train"] = int(input("모델 학습 제한 시간(초)을 입력하세요: "))
     config["n_trials"] = int(input("최적화 시도 횟수를 입력하세요: "))
     config["direction"] = input("최적화 방향을 입력하세요 (minimize/maximize): ")
-    config["target_class"] = input("target_class를 입력하세요 (예: desired_class): ")
+
+
+    '''
+        여기서 사용자로 부터 받는 클래스의 값이 숫자,문자 인지를 구분해야할것 같다.
+    '''
+    config["target_class"] = int(input("target_class를 입력하세요 (예: desired_class): "))
     # config["threshold"] = int(input("threshold 값을 입력하세요: "))
 
     # 고정 피처 목록 (콤마로 구분하여 입력)
