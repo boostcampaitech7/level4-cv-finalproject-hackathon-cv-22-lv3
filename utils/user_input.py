@@ -90,7 +90,9 @@ import json
 import os
 
 
-def save_config_to_json(user_name, user_email, data_path, controllable_feature, necessary_feature, target_feature, limited_feature):
+def save_config_to_json(user_name, user_email, data_path, 
+                        target_feature, controllable_feature, 
+                        opt_range, necessary_feature, limited_feature):
     """
     사용자의 설정 값을 JSON 파일로 저장하거나 기존 파일을 업데이트하는 함수.
 
@@ -98,9 +100,10 @@ def save_config_to_json(user_name, user_email, data_path, controllable_feature, 
         user_name (str): 사용자 이름
         user_email (str): 사용자 이메일
         data_path (str): 데이터 파일 경로
-        controllable_feature (list): 조정 가능한 피처 목록
-        necessary_feature (list): 반드시 포함해야 하는 피처 목록
         target_feature (str): 예측 대상 변수
+        controllable_feature (list): 조정 가능한 피처 목록
+        opt_range (dict): 조정 가능한 피처들의 범위
+        necessary_feature (list): 반드시 포함해야 하는 피처 목록
         limited_feature (int): 최대 사용할 Feature 개수
 
     Returns:
@@ -127,9 +130,10 @@ def save_config_to_json(user_name, user_email, data_path, controllable_feature, 
         "user_name": user_name,
         "user_email": user_email,
         "data_path": data_path,
-        "controllable_feature": controllable_feature,
-        "necessary_feature": necessary_feature,
         "target_feature": target_feature,
+        "controllable_feature": controllable_feature,
+        "opt_range": opt_range,
+        "necessary_feature": necessary_feature,
         "limited_feature": limited_feature
     })
 

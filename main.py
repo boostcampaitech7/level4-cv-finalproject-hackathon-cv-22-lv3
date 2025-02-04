@@ -23,13 +23,14 @@ def main_pipline():
     json_file_path, eda_html_path = get_json(user_name, user_email, data_path) # 업로드된 데이터 EDA 진행 및 반환 가능
 
     features = visualization_feature(json_file_path)
-    controllable_feature,necessary_feature, target_feature,limited_feature =  user_base_setting(features)
+    target_feature, controllable_feature, opt_range, necessary_feature, limited_feature =  user_base_setting(features)
 
-    save_config_to_json(user_name, user_email, data_path, controllable_feature, necessary_feature, target_feature, limited_feature)
+    save_config_to_json(user_name, user_email, data_path, target_feature, controllable_feature, opt_range, necessary_feature, limited_feature)
 
-    print(f'controllable_feature : {controllable_feature}')
-    print(f'necessary_feature : {necessary_feature}')
     print(f'target_feature : {target_feature}')
+    print(f'controllable_feature : {controllable_feature}')
+    print(f'opt_range : {opt_range}')
+    print(f'necessary_feature : {necessary_feature}')
     print(f'limited_feature : {limited_feature}')
 
 
