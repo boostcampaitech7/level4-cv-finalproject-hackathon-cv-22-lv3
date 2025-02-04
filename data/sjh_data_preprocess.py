@@ -21,6 +21,7 @@ class DataPreprocessor:
         self.data_info = data_info
         self.decoders = {}
 
+
     def remove_outliers(self, col):
         '''
         summary: 지정된 열에서 IQR(Interquartile Range)를 기준으로 이상치를 제거합니다.
@@ -86,6 +87,7 @@ class DataPreprocessor:
         
         return self.data
 
+
     def process_column(self, col):
         '''
         summary: 각 열의 특성(type)을 기반으로 적절한 전처리를 수행합니다.
@@ -115,6 +117,7 @@ class DataPreprocessor:
             self._date_features(col)
                 
         return self.data
+
 
     def _categorical_features(self, col):
         '''
@@ -168,6 +171,7 @@ class DataPreprocessor:
                 "encoder" : standard_scaler
                 }
 
+
     def _date_features(self, col):
         '''
         summary: DateTime 열을 년, 월, 일로 나누어 개별 숫자형 변수로 변환합니다. 
@@ -191,15 +195,16 @@ class DataPreprocessor:
         self.data.drop(columns=[col], inplace=True)
         
         self.decoders[col] = {
-            'columns': [f'{col}_year', f'{col}_month', f'{col}_day']
+            'encoder': [f'{col}_year', f'{col}_month', f'{col}_day']
             }
 
     def process_features(self, strategy="mean"):
         '''
-        summary: 모든 열에 대해 전처리를 수행합니다.
+        summary: 모든 열에 대해 전처리를 수행하고, 인코더 정보가 담긴 디코더를 반환합니다.
 
         return: 
             pd.DataFrame: 전처리가 완료된 데이터프레임.
+            Dict : 인코더 정보가 담긴 디코더.
         '''
         original_columns = list(self.data.columns)
         
