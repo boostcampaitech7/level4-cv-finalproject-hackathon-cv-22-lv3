@@ -1,16 +1,18 @@
 import logging
 from optimization.auto_ml import train_model
-from utils.determine_feature import categorical_feature
+from utils.determine_feature import determine_problem_type, make_filtered_data
 from utils.config import load_config, parse_arguments
 from utils.setting import data_setting, visualization_feature
 from optimization.feature_optimization import feature_optimize
 from preprocessing.data_preprocessing import base_preprocessing
 import pandas as pd
-from utils.user_input import save_config_to_json
+from utils.user_input import save_config_to_json, add_config_to_json
 from user_input.login import create_userinfo
 from user_input.data_upload import upload_dataset
 from data.data_info import get_json
 from user_input.base_setting import user_base_setting
+from utils.determine_feature import feature_selection
+from user_input.model_setting import model_base_setting
 
 def main_pipline():
     """
@@ -19,19 +21,29 @@ def main_pipline():
     """
 
     user_name, user_email = create_userinfo() # 로그인
+
     data_path = upload_dataset() # 데이터 업로드
+
     json_file_path, eda_html_path = get_json(user_name, user_email, data_path) # 업로드된 데이터 EDA 진행 및 반환 가능
 
-    features = visualization_feature(json_file_path)
+    features = visualization_feature(json_file_path) # 환경변수, 제어변수, 타겟변수, 갯수 설정
     target_feature, controllable_feature, opt_range, necessary_feature, limited_feature =  user_base_setting(features)
 
-    save_config_to_json(user_name, user_email, data_path, target_feature, controllable_feature, opt_range, necessary_feature, limited_feature)
+    file_path = save_config_to_json(user_name, user_email, data_path, target_feature, controllable_feature, opt_range, necessary_feature, limited_feature) # config 파일 설정
 
-    print(f'target_feature : {target_feature}')
-    print(f'controllable_feature : {controllable_feature}')
-    print(f'opt_range : {opt_range}')
-    print(f'necessary_feature : {necessary_feature}')
-    print(f'limited_feature : {limited_feature}')
+    ctr_feature, env_feature = feature_selection(file_path, len(features)) # 제어변수, 환경변수 따로 가져오기
+    data_frame = make_filtered_data(file_path) # 사용할 변수들만 포함된 데이터프레임
+
+    task = determine_problem_type(data_frame, target_feature) # task 설정
+    train_time, model_quality = model_base_setting() # train_time, model_quality 입력
+    add_config_to_json(file_path, task, train_time, model_quality) # json에 추가로 작성하기
+
+    merged_file_path, processed_df = base_preprocessing(data_frame, file_path) # 데이터 전처리
+
+    # 모델 학습을 위한 train_to_time, quality, task 필요
+    model, test_df = train_model(data_frame, task, target_feature, model_quality, train_time)
+
+
 
 
 
