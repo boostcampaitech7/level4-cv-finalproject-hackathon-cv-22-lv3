@@ -28,7 +28,7 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
 
     """
 
-    feature_columns = data.drop(columns=[target]).columns.tolist()
+    # feature_columns = data.drop(columns=[target]).columns.tolist()
     # features_to_optimize = [feat for feat in feature_columns if feat not in fixed_features]
     # logging.info(f"Features to optimize: {features_to_optimize}")
 
