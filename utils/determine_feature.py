@@ -47,16 +47,16 @@ def determine_problem_type(data, target, threshold=10):
 
 
 
-# def categorical_feature(config, json_file_path):    
-#     try:
-#         categorical_features = identify_categorical_features(json_file_path)
-#         # categorical_features = identify_categorical_features(config,10)
+def categorical_feature(config, json_file_path):    
+    try:
+        categorical_features = identify_categorical_features(json_file_path)
+        # categorical_features = identify_categorical_features(config,10)
 
-#         logging.info(f"Identified categorical features: {categorical_features}")
-#     except Exception as e:
-#         logging.error(f"Failed to identify categorical features: {e}")
-#         return
-#     return categorical_features
+        logging.info(f"Identified categorical features: {categorical_features}")
+    except Exception as e:
+        logging.error(f"Failed to identify categorical features: {e}")
+        return
+    return categorical_features
 
 
 import json
