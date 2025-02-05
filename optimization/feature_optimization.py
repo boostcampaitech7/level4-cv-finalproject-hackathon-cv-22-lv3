@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def feature_optimize(data, task, target, direction, n_trials, target_class,
-                    test_df, model, categorical_features , fixed_features 
+                    test_df, model, categorical_features , fixed_features, config
                     ):
     """Feature를 변경하면서 모델 최적화를 진행합니다.
 
@@ -20,6 +20,7 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
         model (Object): 학습된 모델
         categorical_features (str): 카테고리 Feature들의 리스트
         fixed_features (list): 변경 불가능한 feature
+        config (dict): 사용자 입력이 포함된 config json파일 
 
     Returns:
         original_prediction(pd.Series): 실제 feature
@@ -28,14 +29,15 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
     """
 
     feature_columns = data.drop(columns=[target]).columns.tolist()
-    features_to_optimize = [feat for feat in feature_columns if feat not in fixed_features]
+    # features_to_optimize = [feat for feat in feature_columns if feat not in fixed_features]
     # logging.info(f"Features to optimize: {features_to_optimize}")
 
-    feature_bounds = {}
-    for feature in features_to_optimize:
-        min_val = data[feature].min()
-        max_val = data[feature].max()
-        feature_bounds[feature] = (min_val, max_val)
+    # feature_bounds = {}
+    # for feature in features_to_optimize:
+    #     min_val = data[feature].min()
+    #     max_val = data[feature].max()
+    #     feature_bounds[feature] = (min_val, max_val)
+    feature_bounds = config["opt_range"]
     # logging.info(f"Feature bounds: {feature_bounds}")
 
     sample_idx = 0
