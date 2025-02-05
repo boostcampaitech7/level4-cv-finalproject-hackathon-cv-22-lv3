@@ -4,8 +4,8 @@ from utils.print_feature_type import compare_features
 import pandas as pd
 
 
-def feature_optimize(data, task, target, direction, n_trials, target_class,
-                    test_df, model, categorical_features , fixed_features, config
+def feature_optimize(data, task, config,
+                    test_df, model, categorical_features , fixed_features
                     ):
     """Feature를 변경하면서 모델 최적화를 진행합니다.
 
@@ -27,22 +27,17 @@ def feature_optimize(data, task, target, direction, n_trials, target_class,
         optimized_prediction_value(pd.Series) : 최적화 된 feature
 
     """
-
-    # feature_columns = data.drop(columns=[target]).columns.tolist()
-    # features_to_optimize = [feat for feat in feature_columns if feat not in fixed_features]
-    # logging.info(f"Features to optimize: {features_to_optimize}")
-
-    # feature_bounds = {}
-    # for feature in features_to_optimize:
-    #     min_val = data[feature].min()
-    #     max_val = data[feature].max()
-    #     feature_bounds[feature] = (min_val, max_val)
+    target = config['target_feature']
+    model_config = config['optimization']
+    direction = model_config['direction']
+    n_trials = model_config['n_trials']
+    target_class = model_config['target_class']
     feature_bounds = config["opt_range"]
-    # logging.info(f"Feature bounds: {feature_bounds}")
-
+    logging.info(f"Features to optimize: {list(feature_bounds.keys())}")
+    logging.info(f"Feature bounds: {feature_bounds}")
     sample_idx = 0
     original_sample = test_df.iloc[sample_idx].drop(labels=[target])
-    # logging.info(f"Original sample selected: {original_sample.to_dict()}")
+    logging.info(f"Original sample selected: {original_sample.to_dict()}")
 
     try:
         optimized_features, optimized_prediction = optimizeing_features(

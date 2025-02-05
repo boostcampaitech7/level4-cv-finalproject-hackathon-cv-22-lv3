@@ -2,8 +2,9 @@ import pandas as pd
 from utils.analysis_feature import identify_categorical_features
 import logging
 import json
+from utils.config import load_config
 
-def determine_problem_type(data, target, threshold=10):
+def determine_problem_type(data, config, threshold=10):
     """해당 Task가 어떤 종류의 Task인지 구분합니다.
 
     Args:
@@ -17,6 +18,7 @@ def determine_problem_type(data, target, threshold=10):
     Returns:
         string: 해당 task의 종류
     """
+    target = config["target_feature"]
     if target not in data.columns:
         print(f'column들 리스트 {data.columns}')
         raise ValueError(f"타겟 컬럼 '{target}'이 데이터에 존재하지 않습니다.")
@@ -59,12 +61,9 @@ def categorical_feature(config, json_file_path):
     return categorical_features
 
 
-import json
 def feature_selection(file_path, feature_len=100):
     # JSON 파일 읽기
-    with open(file_path, "r", encoding="utf-8") as f:
-        config = json.load(f)
-
+    config = load_config(file_path)
     target_feature = config.get("target_feature")
     controllable_feature = config.get("controllable_feature")
     necessary_feature = config.get("necessary_feature")
