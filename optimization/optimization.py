@@ -57,7 +57,8 @@ def optimizeing_features(
             proba = predictor.predict_proba(modified_df)
             # 외부 target_class 값을 복사
             local_target_class = target_class  
-            
+            print(f'local_target_class: {local_target_class}')
+            print(f'predictor.class_labels: {predictor.class_labels}')
             if task == 'binary':
                 if local_target_class is None:
                     target_class_proba = proba.iloc[0, 1]
