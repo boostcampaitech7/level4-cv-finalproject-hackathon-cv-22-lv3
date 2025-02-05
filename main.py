@@ -27,9 +27,9 @@ def main_pipline():
     json_file_path, eda_html_path = get_json(user_name, user_email, data_path) # 업로드된 데이터 EDA 진행 및 반환 가능
 
     features = visualization_feature(json_file_path) # 환경변수, 제어변수, 타겟변수, 갯수 설정
-    controllable_feature,necessary_feature, target_feature,limited_feature =  user_base_setting(features)
+    target_feature, controllable_feature, opt_range, necessary_feature, limited_feature =  user_base_setting(features)
 
-    file_path = save_config_to_json(user_name, user_email, data_path, controllable_feature, necessary_feature, target_feature, limited_feature) # config 파일 설정
+    file_path = save_config_to_json(user_name, user_email, data_path, target_feature, controllable_feature, opt_range, necessary_feature, limited_feature) # config 파일 설정
 
     ctr_feature, env_feature = feature_selection(file_path, len(features)) # 제어변수, 환경변수 따로 가져오기
     data_frame = make_filtered_data(file_path) # 사용할 변수들만 포함된 데이터프레임
@@ -42,7 +42,6 @@ def main_pipline():
 
     # 모델 학습을 위한 train_to_time, quality, task 필요
     model, test_df = train_model(data_frame, task, target_feature, model_quality, train_time)
-
 
 
 

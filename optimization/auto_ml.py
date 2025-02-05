@@ -2,14 +2,15 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
- 
+
+
 def automl_module(data, task, target, preset, time_to_train):
     """Autogluon 라이브러리를 활용하여 자동으로 모델을 실행시킵니다.
 
     Args:
         data (pd.DataFrame): 전처리된 데이터셋
         task (str): 수행할 task
-        target (str): 최적화 할 feature
+        target (str): target feature
         preset (int): 모델의 정도 (0~3 정수값)
         time_to_train (int): 학습 시간 (초 단위)
 
@@ -20,11 +21,7 @@ def automl_module(data, task, target, preset, time_to_train):
     Returns:
         predictor(Object): 학습된 모델
         test_df(pd.DataFrame) : test에 사용된 데이터셋
-    """
-    from sklearn.model_selection import train_test_split
-    from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
-    from autogluon.tabular import TabularPredictor
-
+    """ 
     # preset 정수를 문자열 preset으로 변환하는 매핑
     preset_mapping = {
         0: "best_quality",
@@ -35,7 +32,7 @@ def automl_module(data, task, target, preset, time_to_train):
     preset_str = preset_mapping.get(preset, "medium_quality")  # 기본값은 medium_quality
 
     # 데이터 분할
-    train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
+    train_df, test_df = train_test_split(data, test_size=0.2, random_state=42, stratify=data[target])
     
     if target not in train_df.columns:
         raise KeyError(f"Label column '{target}' is missing from training data. Training data columns: {list(train_df.columns)}")
@@ -46,7 +43,7 @@ def automl_module(data, task, target, preset, time_to_train):
         problem_type=task,
         verbosity=1
     ).fit(
-        train_data=train_df,     
+        train_data=train_df, 
         time_limit=time_to_train,          
         presets=preset_str   # 정수 대신 변환된 preset 문자열 사용
     )
