@@ -10,10 +10,11 @@ def load_config(config_path='config.json'):
     if not os.path.exists(config_path):
         raise FileNotFoundError(f"Configuration file not found at: {config_path}")
     
-    with open(config_path, 'r') as file:
+    with open(config_path, 'r', encoding="utf-8") as file:
         config = json.load(file)
     
     return config
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Machine Learning Project Configuration')
