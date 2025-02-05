@@ -90,7 +90,7 @@ import json
 import os
 
 
-def save_config_to_json(user_name, user_email, data_path, controllable_feature, necessary_feature, target_feature, limited_feature):
+def save_config_to_json(user_name, user_email, data_path, controllable_feature, necessary_feature, target_feature, limited_feature, opt_range):
     """
     사용자의 설정 값을 JSON 파일로 저장하거나 기존 파일을 업데이트하는 함수.
 
@@ -130,7 +130,7 @@ def save_config_to_json(user_name, user_email, data_path, controllable_feature, 
         "controllable_feature": controllable_feature,
         "necessary_feature": necessary_feature,
         "target_feature": target_feature,
-        "limited_feature": limited_feature
+        "limited_feature": limited_feature,
     })
 
     # 업데이트된 설정을 JSON으로 저장
@@ -139,3 +139,37 @@ def save_config_to_json(user_name, user_email, data_path, controllable_feature, 
 
     print(f"✅ 설정 파일이 저장(또는 업데이트)되었습니다: {file_path}")
     return file_path
+
+
+def add_config_to_json(file_path, task, train_time, model_quality):
+    """
+    기존 JSON 파일에 추가적인 설정 값을 업데이트하는 함수.
+
+    Args:
+        file_path (str): 업데이트할 JSON 파일 경로
+        task (str): 수행할 task 종류
+        train_time (str): 모델 학습 시간 정보
+        model_quality (str): 모델 품질 평가 결과
+
+    Returns:
+        None
+    """
+    # 파일이 존재하는 경우 기존 설정 불러오기, 없으면 빈 dict 생성
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as f:
+            config = json.load(f)
+    else:
+        config = {}
+
+    # 새로운 값 추가 또는 기존 값 업데이트
+    config.update({
+        "task": task,
+        "train_time": train_time,
+        "model_quality": model_quality
+    })
+
+    # 업데이트된 설정을 JSON 파일로 저장
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4, ensure_ascii=False)
+
+    print(f"✅ 설정 파일이 업데이트되었습니다: {file_path}")    
