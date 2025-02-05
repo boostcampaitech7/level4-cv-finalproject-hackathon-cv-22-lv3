@@ -1,4 +1,5 @@
 import pandas as pd
+import logging
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
@@ -81,7 +82,7 @@ def automl_module(data, task, target, preset, time_to_train):
 
 
 
-def train_model(data, task, target, selected_quality, time_to_train):
+def train_model(data, config):
     """auto_ml을 실행시킨다
 
     Args:
@@ -95,6 +96,11 @@ def train_model(data, task, target, selected_quality, time_to_train):
         model(Object): 학습된 모델
         test_df(pd.DataFrame) : test에 사용된 데이터셋
     """
+    model_config = config['model']
+    task = model_config['task']
+    target = config['target_feature']
+    selected_quality = model_config['model_quality']
+    time_to_train = model_config['time_to_train']
     try:
         model, test_df = automl_module(data, task, target, selected_quality, time_to_train)
         print('AutoGLuon에서 기대하는 클래스\n\n\n\n')
