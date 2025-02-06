@@ -250,6 +250,7 @@ def filter_json(config):
     
     return filtered_data, merged_file_path
 
+
 if __name__ == "__main__":
     config = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/config/user_config.json')
     file_path = '/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv'
