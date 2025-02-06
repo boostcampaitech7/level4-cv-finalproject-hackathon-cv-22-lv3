@@ -11,10 +11,8 @@ python main.py --config /path/to/config
 ```markdown
 ├── 📂 AutogluonModels
 ├── 📂 config
-│   └── base_config.yaml
-├── dataset.py
+├── 📂 data
 ├── main.py
-├── mat2.csv
 ├── 📂 optimization
 │   ├── auto_ml.py
 │   ├── feature_optimization.py
@@ -37,5 +35,5 @@ python main.py --config /path/to/config
 
 # 모델 파이프라인
 
-<img width="1143" alt="image" src="https://github.com/user-attachments/assets/5223668d-0a24-440a-a26c-0b6b98f4c5c1" />
+![image](https://github.com/user-attachments/assets/4d89798b-c9e7-4230-a17e-a25aa7fb4b40)
 

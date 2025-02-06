@@ -21,41 +21,41 @@ class DataPreprocessor:
         self.data_info = data_info
         self.decoders = {}
 
-    def remove_outliers(self, cols):
+
+    def remove_outliers(self, col):
         '''
         summary: 지정된 열에서 IQR(Interquartile Range)를 기준으로 이상치를 제거합니다.
 
         args: 
-            cols (list): 이상치를 제거할 열 이름 목록.
+            col (list): 이상치를 제거할 열 이름 목록.
 
         return: 
             pd.DataFrame: 이상치가 제거된 데이터프레임.
         '''
-        for col in cols:
-            feature = self.data_info[col]
+        feature = self.data_info[col]
 
-            if feature["type"] == "Numeric":
-                Q1 = feature["Q1"]
-                Q3 = feature["Q3"]
-                IQR = feature["iqr"]
-                kurtosis = feature["kurtosis"]
+        if feature["type"] == "Numeric":
+            Q1 = feature["Q1"]
+            Q3 = feature["Q3"]
+            IQR = feature["iqr"]
+            kurtosis = feature["kurtosis"]
+            
+            if kurtosis > 5:
+                lower_bound = Q1 - 3.0 * IQR
+                upper_bound = Q3 + 3.0 * IQR
                 
-                if kurtosis > 5:
-                    lower_bound = Q1 - 1.5 * IQR
-                    upper_bound = Q3 + 1.5 * IQR
-                    
-                    self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
+                self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
+            
+            elif kurtosis < 1:
+                lower_bound = Q1 - 1.5 * IQR
+                upper_bound = Q3 + 1.5 * IQR
                 
-                elif kurtosis < 1:
-                    lower_bound = Q1 - 3.0 * IQR
-                    upper_bound = Q3 + 3.0 * IQR
-                    
-                    self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
+                self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
 
         return self.data
 
 
-    def handle_missing_values(self, cols, strategy="mean"):
+    def handle_missing_values(self, col, strategy="mean"):
         '''
         summary: 결측치를 열별로 처리합니다. 결측치 비율에 따라 행 삭제 또는 대체 기법을 적용합니다.
 
@@ -66,25 +66,24 @@ class DataPreprocessor:
         return: 
             pd.DataFrame: 결측치가 처리된 데이터프레임.
         '''
-        for col in cols:
-            feature = self.data_info[col]
-            missing_ratio = feature["p_missing"]            
+        feature = self.data_info[col]
+        missing_ratio = feature["p_missing"]            
         
-            if missing_ratio < 0.03:
-                self.data = self.data.dropna(subset=[col])  # 결측치 비율이 3% 미만이면 행 삭제
-            else:
-                if strategy in ['mean', 'median', 'mode']:
-                    if feature["type"] == "Numeric":
-                        imputer = SimpleImputer(strategy=strategy)
-                    else:
-                        # 범주형 데이터는 항상 최빈값으로 처리
-                        imputer = SimpleImputer(strategy="most_frequent")
-                elif strategy == "knn":
-                    imputer = KNNImputer(n_neighbors=3)
+        if missing_ratio < 0.03:
+            self.data = self.data.dropna(subset=[col])  # 결측치 비율이 3% 미만이면 행 삭제
+        else:
+            if strategy in ['mean', 'median', 'mode']:
+                if feature["type"] == "Numeric":
+                    imputer = SimpleImputer(strategy=strategy)
                 else:
-                    raise ValueError("Invalid strategy. Choose from 'mean', 'median', 'mode', 'knn'.")
-                
-                self.data[[col]] = imputer.fit_transform(self.data[[col]])
+                    # 범주형 데이터는 항상 최빈값으로 처리
+                    imputer = SimpleImputer(strategy="most_frequent")
+            elif strategy == "knn":
+                imputer = KNNImputer(n_neighbors=3)
+            else:
+                raise ValueError("Invalid strategy. Choose from 'mean', 'median', 'mode', 'knn'.")
+            
+            self.data[[col]] = imputer.fit_transform(self.data[[col]])
         
         return self.data
 
@@ -116,10 +115,7 @@ class DataPreprocessor:
         
         elif feature_type == 'DateTime':
             self._date_features(col)
-        
-        elif feature_type == 'Text':
-            self._text_features(col)
-
+                
         return self.data
 
 
@@ -143,7 +139,6 @@ class DataPreprocessor:
             self.decoders[col] = {
                 'encoder': le,
                 }
-
 
     def _numeric_features(self, col):
         '''
@@ -200,36 +195,27 @@ class DataPreprocessor:
         self.data.drop(columns=[col], inplace=True)
         
         self.decoders[col] = {
-            'columns': [f'{col}_year', f'{col}_month', f'{col}_day']
+            'encoder': [f'{col}_year', f'{col}_month', f'{col}_day']
             }
-    
-
-    def _text_features(self, col):
-        '''
-        summary: Text 데이터 타입에 대해서는 
-        
-        '''
-        self.data.drop(columns=[col], inplace=True)
-
 
     def process_features(self, strategy="mean"):
         '''
-        summary: 모든 열에 대해 전처리를 수행합니다.
+        summary: 모든 열에 대해 전처리를 수행하고, 인코더 정보가 담긴 디코더를 반환합니다.
 
         return: 
             pd.DataFrame: 전처리가 완료된 데이터프레임.
+            Dict : 인코더 정보가 담긴 디코더.
         '''
         original_columns = list(self.data.columns)
         
         for col in original_columns:
-            #self.handle_missing_values(col, strategy)
-            #self.remove_outliers(col)
+            self.handle_missing_values(col, strategy)
+            self.remove_outliers(col)
             processed_df = self.process_column(col)
             
         return processed_df
 
-
-    def decode(self, df, cols):
+    def decode(self, df):
         '''
         summary: 데이터 전처리 과정에서 변환된 값을 원래 값으로 복원합니다.
 
@@ -239,7 +225,8 @@ class DataPreprocessor:
         return:
             pd.DataFrame: 디코딩이 완료된 데이터프레임.
         '''
-        for col in cols:
+        columns = list(df.columns)
+        for col in columns:
             
             if col not in self.decoders:
                 continue
@@ -292,9 +279,8 @@ if __name__ == "__main__":
     # 처리 결과 출력
     print("===================== 인코딩 후 데이터 정보 =====================")
     print(processed_df.head())
-    
-    cols = "제어변수 열 목록"
-    decoded_df = preprocessor.decode(processed_df, cols)
+
+    decoded_df = preprocessor.decode(processed_df)
 
     print("===================== 디코딩 후 데이터 정보 =====================")
     print(decoded_df.head())
