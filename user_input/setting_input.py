@@ -23,10 +23,10 @@ def user_base_setting(features):
         controllable_feature = []  # 또는 원하는 기본 리스트
     else:
         controllable_feature = [feat.strip() for feat in controllable_feature.split(",") if feat.strip()]
-    opt_range = {}
-    for f in controllable_feature:
-        min_max = input(f'{f}의 제어가능한 범위를 설정하기 위해 최소값, 최대값 순으로 입력해주세요. (쉼표로 구분, 기본값: 전체 값에 대한 min, max) : ')
-        opt_range[f] = [int(mm.strip()) for mm in min_max.split(",") if mm.strip()]
+    # opt_range = {}
+    # for f in controllable_feature:
+    #     min_max = input(f'{f}의 제어가능한 범위를 설정하기 위해 최소값, 최대값 순으로 입력해주세요. (쉼표로 구분, 기본값: 전체 값에 대한 min, max) : ')
+    #     opt_range[f] = [int(mm.strip()) for mm in min_max.split(",") if mm.strip()]
         
     necessary_feature = input('훈련에 사용될 조절 불가능한 변수를 설정해주세요. (쉼표로 구분, 기본값: 전체) : ')
 
@@ -47,7 +47,7 @@ def user_base_setting(features):
     user_settings = {
         "target_feature": target_feature,
         "controllable_feature": controllable_feature,
-        "opt_range": opt_range,
+        # "opt_range": opt_range,
         "necessary_feature": necessary_feature,
         "limited_feature": limited_feature
     }
@@ -78,7 +78,7 @@ def model_base_setting(task):
     return {"model": {"task": task, "time_to_train": time_to_train, "model_quality": model_quality}}
 
 
-def base_optimize_setting(task):
+def base_optimize_setting(config):
     """
     최적화 세팅을 입력받고 설정값을 딕셔너리로 반환하는 함수.
 
@@ -90,6 +90,16 @@ def base_optimize_setting(task):
         dict: {'optimization': {'direction': str, 'n_trials': int, 'target_class': str or None}}
     """
     print('\n\n ======= 현재는 최적화 세팅 화면 입니다. =======')
+    task = config["model"].get("task")
+    controllable_feature = config["controllable_feature"]
+    statistics = config["filtered_result"]
+    opt_range = {}
+    for f in controllable_feature:
+        f_info = statistics[f]
+        if f_info["type"] == "Numeric":
+            print(f'{f}의 범위: ({f_info["min"]}, {f_info["max"]})')
+            min_max = input(f'{f}의 제어가능한 범위를 설정하기 위해 최소값, 최대값 순으로 입력해주세요. (쉼표로 구분, 기본값: 전체 값에 대한 min, max) : ')
+            opt_range[f] = [int(mm.strip()) for mm in min_max.split(",") if mm.strip()]
 
     if task != 'regression':
         target_class = int(input('최적화하고 싶은 Feature의 클래스를 선택해주세요 : '))
@@ -105,4 +115,4 @@ def base_optimize_setting(task):
     
     n_trials = int(input('최적화를 시도할 횟수를 선택하세요 : '))
 
-    return {"optimization": {"direction": direction, "n_trials": n_trials, "target_class": target_class}}
+    return {"optimization": {"direction": direction, "n_trials": n_trials, "target_class": target_class, "opt_range": opt_range}}
