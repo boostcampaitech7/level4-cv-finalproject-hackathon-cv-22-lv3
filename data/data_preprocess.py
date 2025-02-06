@@ -222,8 +222,8 @@ class DataPreprocessor:
         original_columns = list(self.data.columns)
         
         for col in original_columns:
-            self.handle_missing_values(col, strategy)
-            self.remove_outliers(col)
+            #self.handle_missing_values(col, strategy)
+            #self.remove_outliers(col)
             processed_df = self.process_column(col)
             
         return processed_df
