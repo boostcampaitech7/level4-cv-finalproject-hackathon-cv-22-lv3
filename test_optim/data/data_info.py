@@ -149,6 +149,8 @@ def get_json(user_name, user_email, data_path, save_path='/data/ephemeral/home/l
     return:
         tuple: (json_file_path, eda_html_path) 저장된 JSON 및 HTML 파일 경로
     """
+    data = pd.read_csv(file_path)
+
     try:
         data = pd.read_csv(data_path)
         logging.info(f"Data loaded from {data_path}")
@@ -247,7 +249,6 @@ def filter_json(config):
     print(f"config 파일에 필터링된 결과가 업데이트되었습니다: {merged_file_path}")
     
     return filtered_data, merged_file_path
-
 
 if __name__ == "__main__":
     config = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/config/user_config.json')
