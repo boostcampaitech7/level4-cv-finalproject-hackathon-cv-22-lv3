@@ -1,7 +1,7 @@
 import openai
 import pandas as p
 from main import main_pipline
-openai.api_key = "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"
+openai.api_key = ""
 # 예시: main_pipeline() 실행 후 결과 받기
 comparison_df, original_prediction, optimized_prediction_value = main_pipline()
 
@@ -37,3 +37,5 @@ def get_solution_from_llm(comparison_df):
 solution = get_solution_from_llm(comparison_df)
 print("LLM이 제시한 솔루션:")
 print(solution)
+
+
