@@ -57,4 +57,4 @@ def base_preprocessing(data, file_path):
     # df = preprocessor.remove_outliers(df, columns=cols) # 이상치 처리시 활성화 (단, 이것도 col 설정해줘야함 )
 
 
-    return merged_file_path, processed_df
+    return merged_file_path, processed_df, preprocessor
