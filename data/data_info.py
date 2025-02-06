@@ -149,8 +149,6 @@ def get_json(user_name, user_email, data_path, save_path='/data/ephemeral/home/l
     return:
         tuple: (json_file_path, eda_html_path) 저장된 JSON 및 HTML 파일 경로
     """
-    data = pd.read_csv(file_path)
-
     try:
         data = pd.read_csv(data_path)
         logging.info(f"Data loaded from {data_path}")
