@@ -3,7 +3,7 @@ import json
 import os
 
 
-def user_base_setting(features):
+def user_base_setting(all_features, numeric_key_features):
     """
     summary: 사용자에게 최적화 설정을 입력받아 반환하는 함수
 
@@ -12,8 +12,7 @@ def user_base_setting(features):
     """
     
     print(f'\n\n ======= 현재는 기본 세팅값을 설정하는 화면입니다 =======')
-
-    print(f'아래의 Feature들은 현재 데이터의 feature들 입니다. \n\n {features}')
+    print(f'조절 가능한 Feature들. \n\n {numeric_key_features}')
 
     target_feature = input('최종적으로 예측하고자 하는 변수를 입력해주세요. (기본값: Attrition) : ') or "Attrition"
     
@@ -27,7 +26,8 @@ def user_base_setting(features):
     # for f in controllable_feature:
     #     min_max = input(f'{f}의 제어가능한 범위를 설정하기 위해 최소값, 최대값 순으로 입력해주세요. (쉼표로 구분, 기본값: 전체 값에 대한 min, max) : ')
     #     opt_range[f] = [int(mm.strip()) for mm in min_max.split(",") if mm.strip()]
-        
+    
+    print(f'조절 불가능한 Feature들. \n\n {all_features}')
     necessary_feature = input('훈련에 사용될 조절 불가능한 변수를 설정해주세요. (쉼표로 구분, 기본값: 전체) : ')
 
     if necessary_feature.strip() == "":

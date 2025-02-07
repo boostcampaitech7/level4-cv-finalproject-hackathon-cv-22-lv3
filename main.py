@@ -27,8 +27,9 @@ def main_pipline():
 
     json_file_path, eda_html_path = get_json(user_name, user_email, data_path) # 업로드된 데이터 EDA 진행 및 반환 가능
 
-    features = visualization_feature(json_file_path) 
-    user_settings =  user_base_setting(features)  # 환경변수, 제어변수, 타겟변수, 갯수 설정
+
+    all_features, numeric_key_features = visualization_feature(json_file_path) 
+    user_settings =  user_base_setting(all_features, numeric_key_features)  # 환경변수, 제어변수, 타겟변수, 갯수 설정
 
     file_path, config = save_config_to_json(user_name, user_email, data_path, user_settings) # config 파일 설정
 
