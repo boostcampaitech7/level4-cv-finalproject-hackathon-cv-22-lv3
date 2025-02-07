@@ -97,7 +97,6 @@ def filter_json(config):
         }
         for var_name, info in config.get('variables', {}).items()
     }
-    
     # 2. config에 필터링된 결과 추가
     config['filtered_result'] = filtered_data
     
@@ -117,7 +116,6 @@ def filter_json(config):
     print(f"config 파일에 필터링된 결과가 업데이트되었습니다: {merged_file_path}")
     
     return filtered_data, merged_file_path
-
 
 
 if __name__ == "__main__":
