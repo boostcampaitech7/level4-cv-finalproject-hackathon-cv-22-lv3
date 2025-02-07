@@ -4,9 +4,8 @@ from utils.print_feature_type import compare_features
 import pandas as pd
 
 
-def feature_optimize(data, task, config,
-                    test_df, model, categorical_features , fixed_features
-                    ):
+def feature_optimize(task, config, test_df, model, 
+                     categorical_features , fixed_features):
     """Feature를 변경하면서 모델 최적화를 진행합니다.
 
     Args:
@@ -28,11 +27,11 @@ def feature_optimize(data, task, config,
 
     """
     target = config['target_feature']
-    model_config = config['optimization']
-    direction = model_config['direction']
-    n_trials = model_config['n_trials']
-    target_class = model_config['target_class']
-    feature_bounds = config["opt_range"]
+    opt_config = config['optimization']
+    direction = opt_config['direction']
+    n_trials = opt_config['n_trials']
+    target_class = opt_config['target_class']
+    feature_bounds = opt_config["opt_range"]
     logging.info(f"Features to optimize: {list(feature_bounds.keys())}")
     logging.info(f"Feature bounds: {feature_bounds}")
     sample_idx = 0

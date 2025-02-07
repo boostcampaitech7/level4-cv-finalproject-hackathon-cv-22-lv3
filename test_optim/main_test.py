@@ -6,11 +6,11 @@ from optimization.auto_ml import train_model
 from optimization.feature_optimization import feature_optimize
 
 # 원본 데이터프레임
-original_df = pd.read_csv('/data/ephemeral/home/test_optim/dataset/WA_Fn-UseC_-HR-Employee-Attrition.csv')
+original_df = pd.read_csv('/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv')
 # 테스트할 설정 파일
-test_config = OmegaConf.load('/data/ephemeral/home/test_optim/config/test_config.json')
+test_config = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/test_optim/config/test_config.json')
 # 테스트 설정 파일 경로
-test_config_path = '/data/ephemeral/home/test_optim/config/test_config.json'
+test_config_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/test_optim/config/test_config.json'
 
 # 원본 데이터 프레임 전처리
 data_preprocess = DataPreprocessor(original_df, test_config)

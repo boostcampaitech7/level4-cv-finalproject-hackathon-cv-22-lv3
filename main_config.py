@@ -9,7 +9,7 @@ import pandas as pd
 from utils.user_input import save_config_to_json, add_config_to_json
 from user_input.login import create_userinfo
 from user_input.data_upload import upload_dataset
-from data.data_info import get_json
+from config.config_generator import generate_model_config
 from user_input.setting_input import user_base_setting, model_base_setting, base_optimize_setting
 from utils.determine_feature import feature_selection
 from utils.analysis_feature import identify_categorical_features
@@ -21,14 +21,15 @@ def main_pipline():
     [data load -> 전처리 -> 예측 모델 학습 -> feature optimization]
     """
 
-    user_name, user_email = create_userinfo() # 로그인
+    # user_name, user_email = create_userinfo() # 로그인
 
-    data_path = upload_dataset() # 데이터 업로드
+    # data_path = upload_dataset() # 데이터 업로드
+    config_path = '/data/ephemeral/home/uploads/config.json'
+    model_config_path = generate_model_config(config_path) # 업로드된 데이터 EDA 진행 및 반환 가능
 
-    json_file_path, eda_html_path = get_json(user_name, user_email, data_path) # 업로드된 데이터 EDA 진행 및 반환 가능
+    #features = visualization_feature(model_config_path) 필요 없음 -> json 로드 후에 리스트로 열들 뽑아오는 함수
 
-    features = visualization_feature(json_file_path) 
-    user_settings =  user_base_setting(features)  # 환경변수, 제어변수, 타겟변수, 갯수 설정
+    user_settings =  user_base_setting(features)  # 환경변수, 제어변수, 타겟변수, 갯수 설정 (user_input으로 변함)
 
     file_path, config = save_config_to_json(user_name, user_email, data_path, user_settings) # config 파일 설정
 

@@ -52,7 +52,8 @@ def generate_model_config(config_path):
     # 기존 config.json을 업데이트 (웹과 통신)
     updated_config = OmegaConf.merge(config, OmegaConf.create({
         "model_config_path": json_file_path,
-        "eda_html_path": eda_html_path
+        "eda_html_path": eda_html_path,
+        "features" : list(data.columns),
     }))
 
     with open(config_path, 'w', encoding='utf-8') as f:
@@ -71,6 +72,21 @@ def generate_model_config(config_path):
     logging.info(f"HTML 저장 완료: {eda_html_path}")
 
     return json_file_path
+
+
+# def apply_user_setting(user_config_path, model_config_path):
+#     '''
+#     Summary:
+#     Args:
+#     Return
+#     '''
+#     user_config = OmegaConf.load(user_config_path)
+#     model_config = OmegaConf.load(model_config_path)
+
+#     logging.info("사용자 설정을 모델 설정 파일에 적용합니다.")
+
+#     target_feature = config.get("targat_feature")
+
 
 def _extract_filtered_eda(config):
     """
