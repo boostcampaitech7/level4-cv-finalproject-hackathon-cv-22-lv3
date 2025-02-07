@@ -19,7 +19,7 @@ def feature_optimize(task, config, test_df, model,
         model (Object): 학습된 모델
         categorical_features (str): 카테고리 Feature들의 리스트
         fixed_features (list): 변경 불가능한 feature
-        config (dict): 사용자 입력이 포함된 config json파일 
+        config (dict): 사용자 입력이 포함된, config json파일 
 
     Returns:
         original_prediction(pd.Series): 실제 feature
