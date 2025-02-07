@@ -45,7 +45,6 @@ def main_pipline():
     # 모델 학습을 위한 train_to_time, quality, task 필요
     model, test_df = train_model(processed_df, config)
 
-
     # 카테고리컬 feature를 구분한다.
     categorical_features = categorical_feature(data_frame, merged_file_path)
     logging.info("Starting feature optimization to maximize the target variable...")
