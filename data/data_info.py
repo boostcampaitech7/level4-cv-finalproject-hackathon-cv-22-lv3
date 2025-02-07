@@ -4,8 +4,9 @@ import pandas as pd
 import os.path as osp
 from omegaconf import OmegaConf
 from ydata_profiling import ProfileReport
+import logging
 
-def generate_model_config(config_path):
+def get_json(user_name, user_email, data_path, save_path='/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/ydata_profiling'):
     """
     summary: 모델 학습을 위한 model_config.json 생성 및 config.json 업데이트
 
@@ -17,13 +18,6 @@ def generate_model_config(config_path):
     return:
         tuple: (json_file_path, eda_html_path) 저장된 JSON 및 HTML 파일 경로
     """
-    # 기존 config 로드
-    config = OmegaConf.load(config_path)
-
-    user_name = config["user_name"]
-    data_path = config["data_path"]
-    save_path = osp.dirname(config_path)
-    
     try:
         data = pd.read_csv(data_path)
         logging.info(f"Data loaded from {data_path}")
@@ -109,4 +103,4 @@ def _extract_filtered_eda(config):
 
 if __name__ == "__main__":
     config_path = '/data/ephemeral/home/uploads/config.json'
-    generate_model_config(config_path)
+    get_json(config_path)

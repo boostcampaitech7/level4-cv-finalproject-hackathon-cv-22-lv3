@@ -27,8 +27,9 @@ def main_pipline():
 
     json_file_path, eda_html_path = get_json(user_name, user_email, data_path) # 업로드된 데이터 EDA 진행 및 반환 가능
 
-    features = visualization_feature(json_file_path) 
-    user_settings =  user_base_setting(features)  # 환경변수, 제어변수, 타겟변수, 갯수 설정
+
+    features, numeric_key_features = visualization_feature(json_file_path) 
+    user_settings =  user_base_setting(features, numeric_key_features)  # 환경변수, 제어변수, 타겟변수, 갯수 설정
 
     file_path, config = save_config_to_json(user_name, user_email, data_path, user_settings) # config 파일 설정
 
@@ -45,7 +46,6 @@ def main_pipline():
     # 모델 학습을 위한 train_to_time, quality, task 필요
     model, test_df = train_model(processed_df, config)
 
-
     # 카테고리컬 feature를 구분한다.
     categorical_features = categorical_feature(data_frame, merged_file_path)
     logging.info("Starting feature optimization to maximize the target variable...")
@@ -57,11 +57,11 @@ def main_pipline():
     test_df = preprocessor.decode(processed_df, ctr_feature)
 
     # 최적화를 진행한다.
-    comparison_df, original_prediction, optimized_prediction_value = feature_optimize(
+    comparison_df, original_prediction, optimized_prediction_value, improvement = feature_optimize(
         task, config, test_df,
         model, categorical_features, env_feature)
     
-    return comparison_df, original_prediction, optimized_prediction_value
+    return comparison_df, original_prediction, optimized_prediction_value, improvement, config
 
     
 if __name__ == '__main__':
