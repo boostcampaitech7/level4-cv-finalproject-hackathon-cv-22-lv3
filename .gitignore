@@ -5,3 +5,5 @@
 AutogluonModels
 *.pyc
 *.html
+ydata_profiling
+test_optim

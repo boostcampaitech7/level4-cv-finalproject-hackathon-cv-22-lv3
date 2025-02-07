@@ -100,6 +100,10 @@ def base_optimize_setting(config):
             print(f'{f}의 범위: ({f_info["min"]}, {f_info["max"]})')
             min_max = input(f'{f}의 제어가능한 범위를 설정하기 위해 최소값, 최대값 순으로 입력해주세요. (쉼표로 구분, 기본값: 전체 값에 대한 min, max) : ')
             opt_range[f] = [int(mm.strip()) for mm in min_max.split(",") if mm.strip()]
+        else:
+            _range = [0, f_info["n_distinct"]-1]
+            opt_range[f] = _range
+            print(f'{f}의 제어가능한 범위: ({_range[0]}, {_range[1]})')
 
     if task != 'regression':
         target_class = int(input('최적화하고 싶은 Feature의 클래스를 선택해주세요 : '))
