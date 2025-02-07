@@ -33,7 +33,10 @@ def automl_module(data, task, target, preset, time_to_train):
     preset_str = preset_mapping.get(preset, "medium_quality")  # 기본값은 medium_quality
 
     # 데이터 분할
-    train_df, test_df = train_test_split(data, test_size=0.2, random_state=42, stratify=data[target])
+    if task == 'regression':
+        train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
+    else:
+        train_df, test_df = train_test_split(data, test_size=0.2, random_state=42, stratify=data[target])
     
     if target not in train_df.columns:
         raise KeyError(f"Label column '{target}' is missing from training data. Training data columns: {list(train_df.columns)}")
