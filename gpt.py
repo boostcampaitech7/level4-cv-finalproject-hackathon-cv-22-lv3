@@ -3,16 +3,25 @@ import pandas as p
 from main import main_pipline
 openai.api_key = ""
 # 예시: main_pipeline() 실행 후 결과 받기
-comparison_df, original_prediction, optimized_prediction_value = main_pipline()
+comparison_df, original_prediction, optimized_prediction_value, improvement, config = main_pipline()
 
-print('====================================================================================')
-print(f'comparision_df : \n{comparison_df}')
-print('\n\n')
-print('====================================================================================')
-print(f'original_prediction : {original_prediction}')
-print('\n\n')
-print('====================================================================================')
-print(f'optimized_prediction_value : {optimized_prediction_value}')
+# print('====================================================================================')
+# print(f'comparision_df : \n{comparison_df}')
+# print('\n\n')
+# print('====================================================================================')
+# print(f'original_prediction : {original_prediction}')
+# print('\n\n')
+# print('====================================================================================')
+# print(f'optimized_prediction_value : {optimized_prediction_value}')
+
+
+if task != 'regression':
+    # Classification인 경우
+    imp = improvement * 100
+    if original_prediction != optimized_prediction_value :
+        print('값을 바꿀만한 최적화를 진행하진 못하였지만 {imp}% 만큼 최적화하였습니다.')
+    else :
+        print('원하는 방향으로 최적화를 진행하였습니다.')
 
 
 

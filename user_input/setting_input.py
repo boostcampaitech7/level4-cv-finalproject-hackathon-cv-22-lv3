@@ -12,12 +12,13 @@ def user_base_setting(all_features, numeric_key_features):
     """
     
     print(f'\n\n ======= 현재는 기본 세팅값을 설정하는 화면입니다 =======')
-    print(f'조절 가능한 Feature들. \n\n {numeric_key_features}')
-
-    target_feature = input('최종적으로 예측하고자 하는 변수를 입력해주세요. (기본값: Attrition) : ') or "Attrition"
+    print(f'Target Feature 리스트 \n\n {all_features}')
+    target_feature = input('최종적으로 예측하고자 하는 변수를 입력해주세요. (기본값: Attrition) : \n\n') 
     
+
+    print(f'조절 가능한 Feature들. : \n {numeric_key_features}')
     # 쉼표로 구분된 경우 리스트로 변환
-    controllable_feature = input('최적화에 사용될 조절 가능한 변수를 설정해주세요. (쉼표로 구분, 기본값: 전체) : ')
+    controllable_feature = input('\n\n 최적화에 사용될 조절 가능한 변수를 설정해주세요. (쉼표로 구분, 기본값: 전체) : ')
     if controllable_feature.strip() == "":
         controllable_feature = []  # 또는 원하는 기본 리스트
     else:
