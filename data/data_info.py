@@ -106,6 +106,7 @@ def _extract_filtered_eda(config):
 
     return filtered_data
 
+
 if __name__ == "__main__":
     config_path = '/data/ephemeral/home/uploads/config.json'
     generate_model_config(config_path)
