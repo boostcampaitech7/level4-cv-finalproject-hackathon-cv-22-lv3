@@ -165,15 +165,11 @@ from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
 import pandas as pd
 import logging
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
+from sklearn.metrics import mean_absolute_error, accuracy_score, f1_score
+from model.regression_metrics import adjusted_r2_score
 from autogluon.tabular import TabularPredictor
 from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
-import pandas as pd
-import logging
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
-from autogluon.tabular import TabularPredictor
-from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
+
 
 def automl_module(data, task, target, preset, time_to_train):
     """
@@ -218,7 +214,6 @@ def automl_module(data, task, target, preset, time_to_train):
         y_train = train_df[target]
         
         try:
-            from imblearn.over_sampling import SMOTE  # 혹은 이미 import 되어 있다면 생략
             sm = SMOTE(random_state=42)
             X_res, y_res = sm.fit_resample(X_train, y_train)
             # resampled 데이터를 DataFrame으로 재구성
@@ -252,22 +247,26 @@ def automl_module(data, task, target, preset, time_to_train):
     X_test = test_df.drop(columns=[target])
     y_true = test_df[target]
     y_pred = predictor.predict(X_test)
+    n_features = X_test.shape[1]
 
-    # 간단한 평가
+    # 모델 성능 평가
+    evaluation = {}
     if task == 'regression':
-        from sklearn.metrics import mean_absolute_error, r2_score
         mae = mean_absolute_error(y_true, y_pred)
-        r2 = r2_score(y_true, y_pred)
+        adjusted_r2 = adjusted_r2_score(y_true, y_pred, n_features)
         print("AutoGluon Regressor 결과:")
         print(f" - MAE : {mae:.4f}")
-        print(f" - R^2 : {r2:.4f}")
+        print(f" - Adjusted R^2 : {adjusted_r2:.4f}")
+        evaluation["MAE"] = mae
+        evaluation["Adjusted_R^2"] = adjusted_r2
     elif task in ['binary', 'multiclass']:
-        from sklearn.metrics import accuracy_score, f1_score
         accuracy = accuracy_score(y_true, y_pred)
         f1 = f1_score(y_true, y_pred, average='weighted')
         print("AutoGluon Classifier 결과:")
         print(f" - Accuracy : {accuracy:.4f}")
         print(f" - F1 Score : {f1:.4f}")
+        evaluation["Accuracy"] = accuracy
+        evaluation["F1_score"] = f1
     else:
         raise ValueError(f"Unsupported task type: {task}")
 
@@ -324,6 +323,7 @@ def automl_module(data, task, target, preset, time_to_train):
 
     # 최종적으로 모델과 단일 샘플만 포함하는 test_df를 반환합니다.
     return predictor, test_df
+
 
 def train_model(data, config):
     """
