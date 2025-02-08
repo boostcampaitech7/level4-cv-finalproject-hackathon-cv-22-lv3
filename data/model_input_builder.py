@@ -4,23 +4,11 @@ import pandas as pd
 from omegaconf import OmegaConf
 from config.update_config import update_config
 
-def categorical_feature(config, json_file_path):    
-    try:
-        categorical_features = identify_categorical_features(json_file_path)
-        # categorical_features = identify_categorical_features(config,10)
-
-        logging.info(f"Identified categorical features: {categorical_features}")
-    except Exception as e:
-        logging.error(f"Failed to identify categorical features: {e}")
-        return
-    return categorical_features
-
-
 def feature_selection(config_path, feature_len=100):
     config = OmegaConf.load(config_path)
     target_feature = config.get("target_feature")
-    controllable_feature = config.get("controllable_feature")
-    environment_feature = config.get("necessary_feature")
+    controllable_feature = config.get("controllable_feature", [])
+    environment_feature = config.get("necessary_feature", [])
     
     # limited_feature가 -1이면, 제한 없이 feature_len 개수로 설정합니다.
     limited_feature = config.get("limited_feature")
@@ -74,10 +62,7 @@ def feature_selection(config_path, feature_len=100):
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(OmegaConf.to_container(config, resolve=True), f, indent=4, ensure_ascii=False)
 
-    #return controllable_feature, environment_feature
-
-
-def make_filtered_data(config_path):
+def make_filtered_data(config_path, data):
     """
     JSON 파일에 기록된 data_path를 이용해 CSV 데이터를 로드한 후,
     controllable_feature, necessary_feature, target_feature, Added_feature에 해당하는 열만 선택하여 DataFrame으로 반환합니다.
@@ -91,13 +76,11 @@ def make_filtered_data(config_path):
     # JSON 파일 읽기
     config = OmegaConf.load(config_path)
 
-    # data_path를 이용해 CSV 파일 로드
-    data_path = config.get("data_path")
-    if not data_path:
-        raise ValueError("JSON 파일에 "data_path" 항목이 없습니다.")
-    
-    df = pd.read_csv(data_path)
-    
+    # # data_path를 이용해 CSV 파일 로드
+    # data_path = config.get("data_path")
+    # if not data_path:
+    #     raise ValueError(f"JSON 파일에 {data_path} 항목이 없습니다.")
+        
     # 선택할 feature들을 각각 추출 (각 항목은 리스트 혹은 단일 문자열일 수 있음)
     controllable = config.get("controllable_feature", [])
     necessary = config.get("necessary_feature", [])
@@ -118,7 +101,7 @@ def make_filtered_data(config_path):
         selected_features.add(target)
     
     # 실제 CSV 파일에 존재하는 열만 선택 (없는 열은 무시)
-    available_features = [col for col in selected_features if col in df.columns]
-    filtered_df = df[available_features].copy()
+    available_features = [col for col in selected_features if col in data.columns]
+    filtered_df = data[available_features].copy()
     
     return filtered_df

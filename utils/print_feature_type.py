@@ -10,6 +10,10 @@ def compare_features(original_features, optimized_features, categorical_features
         optimized_features (pd.Series or dict): 최적화된 피처 이름과 값
         categorical_features (list): 카테고리형 피처 리스트
     """
+    print(f"Original Sample Length: {len(original_features)}")
+    print(f"Optimized Features Length: {len(optimized_features)}")
+    print(f"Categorical Features Length: {len(categorical_features)}")
+
     comparison_df = pd.DataFrame({
         'Feature': original_features.index,
         'Type': ['Categorical' if feat in categorical_features else 'Numerical' for feat in original_features.index],

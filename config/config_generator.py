@@ -5,6 +5,7 @@ import os.path as osp
 from datetime import datetime
 from omegaconf import OmegaConf
 from ydata_profiling import ProfileReport
+from utils.analysis_feature import identify_categorical_features
 
 def generate_config(data_path):
     """
@@ -38,6 +39,11 @@ def generate_config(data_path):
     model_config_path = osp.join(save_path, model_config_filename)
     eda_html_path = osp.join(save_path, eda_html_filename)
 
+    # 고유값이 하나일 경우 drop
+    for col in data.columns:
+        if len(data[col].unique()) == 1:
+            data.drop(columns=[col], inplace=True)
+
     # ydata_profiling을 사용해 EDA 진행 후 HTML 저장
     profile = ProfileReport(data, explorative=True)
     profile.to_file(eda_html_path)
@@ -50,15 +56,16 @@ def generate_config(data_path):
     # EDA 결과 필터링
     filtered_data = _extract_filtered_eda(original_eda)
     correlations = original_eda.get("correlations")
+    categorical_feature = identify_categorical_features(filtered_data)
 
     # config 객체 생성
     config = OmegaConf.create({})
-    # 함수 추가 (n_distinct == 1)
+
     # 기존 config.json을 업데이트 (웹과 통신)
     user_config = OmegaConf.merge(config, OmegaConf.create({
         "model_config_path": model_config_path,
         "eda_html_path": eda_html_path,
-        "features" : list(data.columns),
+        "features" : list(data.columns)
     }))
 
     with open(user_config_path, 'w', encoding='utf-8') as f:
@@ -72,19 +79,7 @@ def generate_config(data_path):
         "filtered_data": filtered_data,
         "correlations": correlations,
         "final_features" : None,
-        "model" : 
-        {
-            "task": None,
-            "time_to_train": 30,
-            "model_quality": 0
-        },
-        "optimization": 
-        {
-            "direction" : None,
-            "n_trials": None,
-            "target_class": None,
-            "optim_range": {}
-        },
+        "categorical_features" : categorical_feature
     }))
 
     with open(model_config_path, 'w', encoding='utf-8') as f:
@@ -94,7 +89,7 @@ def generate_config(data_path):
     logging.info(f"서버 내부용 model_config.json 저장 완료: {model_config_path}")
     logging.info(f"HTML 저장 완료: {eda_html_path}")
 
-    return model_config_path, user_config_path
+    return model_config_path, user_config_path, data
 
 
 def _extract_filtered_eda(config):
@@ -132,4 +127,4 @@ def _extract_filtered_eda(config):
 
 if __name__ == "__main__":
     data_path = '/data/ephemeral/home/uploads/WA_Fn-UseC_-HR-Employee-Attrition.csv'
-    model_config_path, user_config_path = generate_config(data_path)
+    model_config_path, user_config_path, original_df = generate_config(data_path)

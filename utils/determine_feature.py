@@ -1,8 +1,9 @@
 import logging
+from omegaconf import OmegaConf
 import pandas as pd
+from config.update_config import update_config
 
-
-def determine_problem_type(config, threshold=10):
+def determine_problem_type(config_path, threshold=10):
     """해당 Task가 어떤 종류의 Task인지 구분합니다.
 
     Args:
@@ -16,6 +17,8 @@ def determine_problem_type(config, threshold=10):
     Returns:
         string: 해당 task의 종류
     """
+    config = OmegaConf.load(config_path)
+    
     target = config["target_feature"]
     data = pd.read_csv(config["data_path"])
     
@@ -30,24 +33,29 @@ def determine_problem_type(config, threshold=10):
         if num_unique <= 2:
             #print('\n=================해당 task는 binary classification 입니다.=================\n')
             logging.info("task 설정 : binary classification")
-            return 'binary'
+            config_updates = {"task": 'binary'}
+            update_config(config_path, config_updates)
         elif num_unique <= threshold:
             #print('\n=================해당 task는 multiclass 입니다.=================\n')
             logging.info("task 설정 : multiclass classification")
-            return 'multiclass'
+            config_updates = {"task": 'multiclass'}
+            update_config(config_path, config_updates)
         else:
             #print('\n================해당 task는 Regression 입니다.=================\n')
             logging.info("task 설정 : regression")
-            return 'regression'
+            config_updates = {"task": 'regression'}
+            update_config(config_path, config_updates)
     else:
         num_unique = target_series.nunique()
         if num_unique == 2:
             #print('\n=================해당 task는 binary classification 입니다.=================\n')
             logging.info("task 설정 : binary classification")
-            return 'binary'
+            config_updates = {"task": 'binary'}
+            update_config(config_path, config_updates)
         elif num_unique > 2:
             #print('\n=================해당 task는 multiclass 입니다.=================\n')
             logging.info("task 설정 : multiclass classification")
-            return 'multiclass'
+            config_updates = {"task": 'multiclass'}
+            update_config(config_path, config_updates)
         else:
             raise ValueError(f"타겟 컬럼 '{target}'은(는) 고유 값이 하나뿐입니다.")

@@ -18,7 +18,7 @@ class DataPreprocessor:
             data_info (dict): 각 열의 전처리 정보를 담은 딕셔너리.
         '''
         self.data = df
-        self.data_info = config
+        self.data_info = config["filtered_data"]
         self.decoders = {}
 
     def remove_outliers(self, cols):
@@ -102,11 +102,11 @@ class DataPreprocessor:
         feature = self.data_info[col]
         feature_type = feature['type']
 
-        n_distinct = feature['n_distinct']
+        # n_distinct = feature['n_distinct']
 
-        if n_distinct == 1:
-            self.data.drop(columns=[col], inplace=True)
-            return
+        # if n_distinct == 1:
+        #     self.data.drop(columns=[col], inplace=True)
+        #     return
 
         if feature_type == 'Categorical' or feature_type == 'Boolean':
             self._categorical_features(col)
@@ -134,7 +134,7 @@ class DataPreprocessor:
         return:
             None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
         '''
-        if not np.issubdtype(self.data[col].dtype, np.integer):    
+        if not np.issubdtype(self.data[col].dtype, np.integer):
             # Label Encoding 적용
             le = LabelEncoder()
             self.data[col] = le.fit_transform(self.data[col])
@@ -283,4 +283,4 @@ def preprocessing(data, config_path):
 
     preprocessed_df = preprocessor.process_features()
 
-    return preprocessed_df
+    return preprocessed_df, preprocessor

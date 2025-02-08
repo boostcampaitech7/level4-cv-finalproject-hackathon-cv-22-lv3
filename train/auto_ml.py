@@ -147,7 +147,7 @@ def train_model(data, config_path):
     """
     config = OmegaConf.load(config_path)
     model_config = config['model']
-    task = model_config['task']
+    task = config['task']
     target = config['target_feature']
     selected_quality = model_config['model_quality']
     time_to_train = model_config['time_to_train']
