@@ -3,7 +3,8 @@ import pandas as p
 from main import main_pipline
 openai.api_key = ""
 # 예시: main_pipeline() 실행 후 결과 받기
-comparison_df, original_prediction, optimized_prediction_value, improvement, config = main_pipline()
+
+final_result = main_pipline()
 
 # print('====================================================================================')
 # print(f'comparision_df : \n{comparison_df}')
@@ -18,11 +19,13 @@ comparison_df, original_prediction, optimized_prediction_value, improvement, con
 if task != 'regression':
     # Classification인 경우
     imp = improvement * 100
-    if original_prediction != optimized_prediction_value :
-        print('값을 바꿀만한 최적화를 진행하진 못하였지만 {imp}% 만큼 최적화하였습니다.')
+    if target_class != optimized_prediction_value :
+        print(f'값을 바꿀만한 최적화를 진행하진 못하였지만 {imp}% 만큼 최적화하였습니다.')
     else :
         print('원하는 방향으로 최적화를 진행하였습니다.')
 
+else : 
+    print('regression이기에 그냥 단순히 최적화 된 값들을 보여준다')
 
 
 # def get_solution_from_llm(comparison_df):

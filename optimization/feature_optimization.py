@@ -1,4 +1,6 @@
 import logging
+import pandas as pd
+
 from .optimization import optimizeing_features
 from utils.print_feature_type import compare_features
 from omegaconf import OmegaConf
@@ -38,100 +40,184 @@ def feature_optimize(config_path, model, test_df):
     target = config.get("target_feature")            # (예: 'Attrition')
     
     opt_config = config['optimization']
-    direction = opt_config['direction']         # (예: 'maximize' or 'minimize')
-    n_trials = opt_config['n_trials']           # (예: 100)
-    target_class = opt_config['target_class']   # (예: 'Yes' or '1' 등)
-    feature_bounds = opt_config["opt_range"]    # 최적화 대상 Feature의 min-max 범위
+    direction = opt_config['direction']         
+    n_trials = opt_config['n_trials']           
+    target_class = opt_config['target_class']   
+    feature_bounds = opt_config["opt_range"]    
 
     logging.info(f"Features to optimize: {list(feature_bounds.keys())}")
     logging.info(f"Feature bounds: {feature_bounds}")
-    
-    # ================================================================
-    # 2) target_class와 다른 값을 갖는 데이터만 필터링 (test_df 축소)
-    # ================================================================
-    # 예: target_feature='Attrition', target_class='No' 라면, 
-    #     test_df[Attrition != 'No'] 행들만 남긴다.
-    filtered_df = test_df[test_df[target] != target_class]
-    
-    if filtered_df.empty:
-        # 필터링 후 남은 행이 하나도 없는 경우
-        logging.error(
-            f"No rows found where '{target}' != '{target_class}'. "
-            "Cannot proceed with feature optimization."
-        )
-        return None, None, None  # 혹은 적절한 처리를 할 수 있음
-    
-    # =================================================================
-    # 3) (샘플 1개 선택) 여기서는 예시로 sample_idx=0 행을 사용
-    # =================================================================
-    sample_idx = 0  # 원하는대로 바꿔도 됨
-    original_sample = filtered_df.iloc[sample_idx].drop(labels=[target])
-    logging.info(f"Original sample selected (index={filtered_df.index[sample_idx]}): {original_sample.to_dict()}")
 
     # ==============================
-    # 4) feature 최적화 수행 (Optuna)
+    # [1] 회귀인 경우
     # ==============================
-    try:
-        # 3개 값을 반환하도록 구현된 optimizeing_features 함수
-        optimized_features, optimized_prediction, original_prediction,  improvement = optimizeing_features(
-            predictor=model, 
-            original_features=original_sample, 
-            feature_bounds=feature_bounds, 
-            categorical_features=categorical_features,
-            task=task,
-            direction=direction, 
-            n_trials=n_trials,
-            target_class=target_class  
-        )
-        logging.info(f"Optimized features: {optimized_features}")
-        logging.info(f"Original 확률값: {original_prediction}")
-        logging.info(f"Optimized 확률값: {optimized_prediction}")
-        logging.info(f"Improvement from original: {improvement:.4f}")
-    except Exception as e:
-        logging.error(f"Feature optimization failed: {e}")
-        # 예외 발생 시 None 반환(혹은 다른 에러 처리 로직)
-        return None, None, None
-
-    # =====================================
-    # 5) 변경 전후 Feature를 비교하기
-    # =====================================
-    # compare_features: (original_series, optimized_series, categorical_features) → 비교표 DataFrame
-    comparison_df = compare_features(original_sample, pd.Series(optimized_features), categorical_features)
-
-    # =================================================
-    # 6) 최적화에서 제외할 피처(fixed_features) 원복
-    # =================================================
-    optimized_sample = optimized_features.copy()
-    for feature in fixed_features:
-        if feature in original_sample:
-            optimized_sample[feature] = original_sample[feature]
+    if task == 'regression':
+        # test_df에서 최대 5개 샘플을 무작위 추출(5개 미만이면 전부 사용)
+        if len(test_df) < 5:
+            logging.warning("test_df 행 개수가 5개 미만. 전체를 사용합니다.")
+            sample_df = test_df.copy()
         else:
-            logging.warning(f"Fixed feature '{feature}' not found in original sample.")
+            sample_df = test_df.sample(n=5, random_state=42)
+        
+        results_list = []
 
-    # ================================================
-    # 7) (Optional) 변경 전/후 최종 모델 예측값 계산
-    # ================================================
-    try:
-        original_prediction_series = model.predict(pd.DataFrame([original_sample.to_dict()]))
-        original_prediction = original_prediction_series.iloc[0]
-    except KeyError:
-        # 예측 결과의 인덱스 혹은 컬럼 Key 문제로 발생 가능
-        original_prediction = original_prediction_series.values[0]
-    except Exception as e:
-        logging.error(f"Failed to get original prediction: {e}")
-        original_prediction = None
+        for idx, row_data in sample_df.iterrows():
+            # 행에서 타깃(target) 제외한 feature만 추출
+            original_sample = row_data.drop(labels=[target])
+            logging.info(f"[Regression] index={idx}, sample={original_sample.to_dict()}")
 
-    try:
-        optimized_prediction_series = model.predict(pd.DataFrame([optimized_sample]))
-        optimized_prediction_value = optimized_prediction_series.iloc[0]
-    except KeyError:
-        optimized_prediction_value = optimized_prediction_series.values[0]
-    except Exception as e:
-        logging.error(f"Failed to get optimized prediction: {e}")
-        optimized_prediction_value = None
+            try:
+                # optimizeing_features가 4개 반환한다고 가정
+                # (best_features, best_pred, orig_pred, improvement)
+                best_features, best_pred, orig_pred, improvement = optimizeing_features(
+                    predictor=model, 
+                    original_features=original_sample, 
+                    feature_bounds=feature_bounds, 
+                    categorical_features=categorical_features,
+                    task=task,
+                    direction=direction, 
+                    n_trials=n_trials,
+                    target_class=target_class  
+                )
+                logging.info(f"[Regression] index={idx}")
+                logging.info(f"   Original pred:  {orig_pred}")
+                logging.info(f"   Optimized pred: {best_pred}")
+                logging.info(f"   Improvement:    {improvement}")
 
-    print(f"\nOriginal Prediction: {original_prediction}")
-    print(f"Optimized Prediction: {optimized_prediction_value}")
+                # 변경 전/후 Feature 비교
+                comparison_df = compare_features(
+                    original_sample, 
+                    pd.Series(best_features), 
+                    categorical_features
+                )
 
-    # 최종 결과물 반환
-    return comparison_df, original_prediction, optimized_prediction_value, improvement
+                # 고정 Feature 복원
+                optimized_sample = best_features.copy()
+                for feat in fixed_features:
+                    if feat in original_sample:
+                        optimized_sample[feat] = original_sample[feat]
+
+                # (Optional) 최종 예측
+                final_prediction = model.predict(pd.DataFrame([optimized_sample])).iloc[0]
+
+                # 결과 리스트에 저장
+                results_list.append({
+                    'index': idx,
+                    'comparison_df': comparison_df,
+                    'original_prediction': orig_pred,
+                    'optimized_prediction': best_pred,
+                    'improvement': improvement,
+                    'final_prediction': final_prediction
+                })
+
+            except Exception as e:
+                logging.error(f"Optimization failed on index={idx}: {e}")
+                results_list.append({
+                    'index': idx,
+                    'error': str(e)
+                })
+        
+        # 평균 개선도
+        valid_improvements = [r['improvement'] for r in results_list if 'improvement' in r]
+        avg_improvement = sum(valid_improvements)/len(valid_improvements) if valid_improvements else None
+
+        # 최종 딕셔너리 반환
+        final_dict = {
+            'task': 'regression',
+            'results': results_list,
+            'average_improvement': avg_improvement
+        }
+        return final_dict
+
+
+    else: 
+        preds = model.predict(test_df.drop(columns=[target], errors='ignore'))  # target 컬럼이 있으면 제외 후 예측
+        test_df['predicted_class'] = preds
+        filtered_df = test_df[test_df['predicted_class'] != target_class].copy()
+        
+        if filtered_df.empty:
+            logger.error(f"No rows found where predicted_class != '{target_class}'. Cannot proceed.")
+            return None
+        
+        # 2) 최대 30개 샘플 선정
+        if len(filtered_df) <= 30:
+            sample_df = filtered_df
+        else:
+            sample_df = filtered_df.sample(n=30, random_state=42)
+        
+        results_list = []
+        
+        for idx, row_data in sample_df.iterrows():
+            original_sample = row_data.drop(labels=[target, 'predicted_class'], errors='ignore')
+            logger.info(f"[Classification] Optimizing sample idx={idx}: {original_sample.to_dict()}")
+            
+            try:
+                best_feat, best_pred, orig_pred, improvement = optimizeing_features(
+                    predictor=model,
+                    original_features=original_sample,
+                    feature_bounds=feature_bounds,
+                    categorical_features=categorical_features,
+                    task=task,
+                    direction=direction,
+                    n_trials=n_trials,
+                    target_class=target_class
+                )
+            except Exception as e:
+                logger.error(f"Optimization failed for index {idx}: {e}")
+                continue
+
+            # 고정 피처 복원
+            for f in fixed_features:
+                if f in original_sample:
+                    best_feat[f] = original_sample[f]
+
+            # 변경 전후 feature 비교
+            comparison_df = compare_features(original_sample, pd.Series(best_feat), categorical_features)
+
+            # 최종 모델 예측
+            try:
+                # 원본
+                orig_df = pd.DataFrame([original_sample.to_dict()])
+                orig_pred_class = model.predict(orig_df).iloc[0]
+                
+                # 최적화 후
+                optimized_df = pd.DataFrame([best_feat])
+                new_pred_class = model.predict(optimized_df).iloc[0]
+            except Exception as e:
+                logger.error(f"Prediction failed after optimization: {e}")
+                continue
+
+            logger.info(f"[Classification] Index={idx} Original pred_class={orig_pred_class}, "
+                        f"Optimized pred_class={new_pred_class}, Improvement={improvement:.4f}")
+            
+            results_list.append({
+                'index': idx,
+                'original_sample': original_sample.to_dict(),
+                'optimized_features': best_feat,
+                'original_prediction': orig_pred,
+                'best_prediction': best_pred,
+                'original_pred_class': orig_pred_class,
+                'optimized_pred_class': new_pred_class,
+                'improvement': improvement,
+                'comparison': comparison_df
+            })
+
+        # 3) 분류 성능 측정: 원하는 클래스(target_class)로 바뀐 개수 / 전체
+        count_changed_to_target = sum(
+            1 for r in results_list
+            if r['optimized_pred_class'] == target_class
+        )
+        total_optimized = len(results_list)  # 실제 최적화가 성공적으로 끝난 샘플 수
+        ratio = count_changed_to_target / total_optimized if total_optimized > 0 else 0.0
+        
+        logger.info(f"[Classification] 총 {total_optimized}개 중 {count_changed_to_target}개가 '{target_class}' 클래스로 변경되었습니다. (비율: {ratio:.2%})")
+        
+        final_dict = {
+            'task': 'classification',
+            'target_class': target_class,
+            'results': results_list,
+            'count_changed_to_target': count_changed_to_target,
+            'ratio_changed_to_target': ratio
+        }
+        
+        return final_dict

@@ -56,12 +56,14 @@ def main_pipline():
 
     test_df = preprocessor.decode(processed_df, ctr_feature)
 
-    # 최적화를 진행한다.
-    comparison_df, original_prediction, optimized_prediction_value, improvement = feature_optimize(
-        task, config, test_df,
-        model, categorical_features, env_feature)
+
+
+    final_dict = feature_optimize(
+            task, config, test_df,
+            model, categorical_features, env_feature)
+
     
-    return comparison_df, original_prediction, optimized_prediction_value, improvement, config
+    return final_dict
 
     
 if __name__ == '__main__':
