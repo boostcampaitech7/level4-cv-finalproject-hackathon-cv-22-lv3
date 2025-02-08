@@ -98,7 +98,8 @@ def automl_module(data, task, target, preset, time_to_train):
         time_limit=time_to_train,          
         presets=preset_str,  # 정수 대신 변환된 preset 문자열 사용
         hyperparameters=hyperparameters,
-        hyperparameter_tune_kwargs=hyperparameter_tune_kwargs  # Bayesian Optimization 적용
+        hyperparameter_tune_kwargs=hyperparameter_tune_kwargs, # Bayesian Optimization 적용
+        num_gpus=1 # 수정해야함
     )
 
     y_pred = predictor.predict(test_df.drop(columns=[target]))  
