@@ -102,12 +102,6 @@ class DataPreprocessor:
         feature = self.data_info[col]
         feature_type = feature['type']
 
-        # n_distinct = feature['n_distinct']
-
-        # if n_distinct == 1:
-        #     self.data.drop(columns=[col], inplace=True)
-        #     return
-
         if feature_type == 'Categorical' or feature_type == 'Boolean':
             self._categorical_features(col)
         

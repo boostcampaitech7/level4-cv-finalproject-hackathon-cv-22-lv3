@@ -1,12 +1,14 @@
-import pandas as pd
+import json
 import logging
+import pandas as pd
+from omegaconf import OmegaConf
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
 from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
-from omegaconf import OmegaConf
 
-def automl_module(data, task, target, preset, time_to_train):
+
+def automl_module(data, task, target, preset, time_to_train, config):
     """
     Autogluon 라이브러리를 활용하여 자동으로 모델을 실행시킵니다.
     
@@ -99,7 +101,7 @@ def automl_module(data, task, target, preset, time_to_train):
         presets=preset_str,  # 정수 대신 변환된 preset 문자열 사용
         hyperparameters=hyperparameters,
         hyperparameter_tune_kwargs=hyperparameter_tune_kwargs, # Bayesian Optimization 적용
-        num_gpus=1 # 수정해야함
+        num_gpus=1 # GPU 사용 가능하게 수정
     )
 
     y_pred = predictor.predict(test_df.drop(columns=[target]))  
@@ -110,28 +112,41 @@ def automl_module(data, task, target, preset, time_to_train):
         print("AutoGluon Regressor 결과:")
         print(f" - MAE : {mae:.4f}")
         print(f" - R^2 : {r2:.4f}")
+        
+        config["model_result"] = {
+            "MAE": round(mae, 4),
+            "R2": round(r2, 4)
+        }
+
     elif task in ['binary', 'multiclass']:
         accuracy = accuracy_score(test_df[target], y_pred)
         f1 = f1_score(test_df[target], y_pred, average='weighted')
         print("AutoGluon Classifier 결과:")
         print(f" - Accuracy : {accuracy:.4f}")
         print(f" - F1 Score : {f1:.4f}")
+        
+        config["model_result"] = {
+            "accuracy": round(accuracy, 4),
+            "f1_score": round(f1, 4)
+        }
     else:
         raise ValueError(f"Unsupported task type: {task}")
 
     leaderboard = predictor.leaderboard(test_df, silent=True)
     print(f'LeaderBoard Result :\n{leaderboard}')
+    config["Top_models"] = leaderboard.to_dict()
 
     feature_importance = predictor.feature_importance(test_df)
     print(f'Feature Importance:\n{feature_importance}')
     print('==============================================================\n')
     print('==============================================================\n')
+    config["feature_importance"] = feature_importance.to_dict()
 
     evaluation = predictor.evaluate(test_df)
     print(f'Evaluation Results:\n{evaluation}')
     print('==============================================================\n')
     print('==============================================================\n')
-    return predictor, test_df
+    return predictor, test_df, config
 
 
 def train_model(data, config_path):
@@ -153,7 +168,11 @@ def train_model(data, config_path):
     selected_quality = model_config['model_quality']
     time_to_train = model_config['time_to_train']
     try:
-        model, test_df = automl_module(data, task, target, selected_quality, time_to_train)
+        model, test_df, config = automl_module(data, task, target, selected_quality, time_to_train, config)
+        
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(OmegaConf.to_container(config, resolve=True), f, indent=4, ensure_ascii=False)
+
         print('AutoGLuon에서 기대하는 클래스\n\n\n\n')
         print(model.class_labels)
         print('\n\n==========================================\n')

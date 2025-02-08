@@ -37,6 +37,7 @@ def feature_selection(config_path, feature_len=100):
     print(f"정렬 전 candidate_correlations: {candidate_correlations}\n\n")
     # target_feature와의 상관계수 절대값 기준 내림차순 정렬
     candidate_correlations = dict(sorted(candidate_correlations.items(), key=lambda x: x[1], reverse=True))
+    config["correlations_result"] = candidate_correlations
     print(f"정렬 후 candidate_correlations: {candidate_correlations}\n\n")
 
     # 최종 Feature 리스트 구성: 우선 필수 feature를 포함하고, 상관관계가 높은 순서대로 추가합니다.
