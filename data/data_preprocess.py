@@ -11,14 +11,14 @@ class DataPreprocessor:
     summary: 데이터 전처리를 위한 클래스. 이상치 처리, 결측치 처리, 
              변수 특성별 처리를 수행합니다.
     '''
-    def __init__(self, df, data_info):
+    def __init__(self, df, config):
         '''
         args:
             df (pd.DataFrame): 원본 데이터.
             data_info (dict): 각 열의 전처리 정보를 담은 딕셔너리.
         '''
         self.data = df
-        self.data_info = data_info
+        self.data_info = config
         self.decoders = {}
 
     def remove_outliers(self, cols):
@@ -275,27 +275,12 @@ class DataPreprocessor:
                 df.drop(columns=encoder_info['encoder'], inplace=True)
 
         return df
-    
 
-if __name__ == "__main__":
-    # CSV 파일 로드
-    df = pd.read_csv("/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv")
 
-    # 데이터 EDA 정보를 JSON에서 로드
-    data_info = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/ydata_profiling/user_user@xx.com_merged_base_config.json')
+def preprocessing(data, config_path):
+    config = OmegaConf.load(config_path)    
+    preprocessor = DataPreprocessor(data, config)
 
-    preprocessor = DataPreprocessor(df, data_info)
+    preprocessed_df = preprocessor.process_features()
 
-    # 결측치, 이상치, 특성별 전처리 수행
-    processed_df = preprocessor.process_features(strategy="knn")
-
-    # 처리 결과 출력
-    print("===================== 인코딩 후 데이터 정보 =====================")
-    print(processed_df.head())
-    
-    cols = "제어변수 열 목록"
-    decoded_df = preprocessor.decode(processed_df, cols)
-
-    print("===================== 디코딩 후 데이터 정보 =====================")
-    print(decoded_df.head())
-    print(decoded_df.info())
+    return preprocessed_df

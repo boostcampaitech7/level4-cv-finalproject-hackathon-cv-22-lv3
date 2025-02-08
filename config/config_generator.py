@@ -2,12 +2,13 @@ import json
 import logging
 import pandas as pd
 import os.path as osp
+from datetime import datetime
 from omegaconf import OmegaConf
 from ydata_profiling import ProfileReport
 
-def generate_model_config(config_path):
+def generate_config(data_path):
     """
-    summary: 모델 학습을 위한 model_config.json 생성 및 config.json 업데이트
+    summary: 모델 학습을 위한 model_config.json 생성 및 user_config.json 업데이트
 
     args:
         config (dict): 설정 정보를 담은 딕셔너리 (여기서 user_name, user_email 키 사용)
@@ -17,12 +18,7 @@ def generate_model_config(config_path):
     return:
         tuple: (json_file_path, eda_html_path) 저장된 JSON 및 HTML 파일 경로
     """
-    # 기존 config 로드
-    config = OmegaConf.load(config_path)
-
-    user_name = config["user_name"]
-    data_path = config["data_path"]
-    save_path = osp.dirname(config_path)
+    save_path = osp.dirname(data_path)
     
     try:
         data = pd.read_csv(data_path)
@@ -31,10 +27,15 @@ def generate_model_config(config_path):
         logging.error(f"Failed to load data: {e}")
         return
 
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
     # 저장 경로 설정
-    json_filename = f"{user_name}_model_config.json"
-    eda_html_filename = f"{user_name}_EDA_analysis.html"
-    json_file_path = osp.join(save_path, json_filename)
+    user_config_filename = f'{timestamp}_user_config.json'
+    model_config_filename = f"model_config.json"
+    eda_html_filename = f"EDA_analysis.html"
+    
+    user_config_path = osp.join(save_path, user_config_filename)
+    model_config_path = osp.join(save_path, model_config_filename)
     eda_html_path = osp.join(save_path, eda_html_filename)
 
     # ydata_profiling을 사용해 EDA 진행 후 HTML 저장
@@ -48,44 +49,52 @@ def generate_model_config(config_path):
     
     # EDA 결과 필터링
     filtered_data = _extract_filtered_eda(original_eda)
+    correlations = original_eda.get("correlations")
 
+    # config 객체 생성
+    config = OmegaConf.create({})
+    # 함수 추가 (n_distinct == 1)
     # 기존 config.json을 업데이트 (웹과 통신)
-    updated_config = OmegaConf.merge(config, OmegaConf.create({
-        "model_config_path": json_file_path,
+    user_config = OmegaConf.merge(config, OmegaConf.create({
+        "model_config_path": model_config_path,
         "eda_html_path": eda_html_path,
         "features" : list(data.columns),
     }))
 
-    with open(config_path, 'w', encoding='utf-8') as f:
-        json.dump(OmegaConf.to_container(updated_config, resolve=True), f, indent=4, ensure_ascii=False)
+    with open(user_config_path, 'w', encoding='utf-8') as f:
+        json.dump(OmegaConf.to_container(user_config, resolve=True), f, indent=4, ensure_ascii=False)
     
     # model_config.json 생성 (서버 내부용)
     model_config = OmegaConf.merge(config, OmegaConf.create({
+        "data_path": data_path,
+        "save_path": save_path,
+        "features": list(data.columns),
         "filtered_data": filtered_data,
+        "correlations": correlations,
+        "final_features" : None,
+        "model" : 
+        {
+            "task": None,
+            "time_to_train": 30,
+            "model_quality": 0
+        },
+        "optimization": 
+        {
+            "direction" : None,
+            "n_trials": None,
+            "target_class": None,
+            "optim_range": {}
+        },
     }))
 
-    with open(json_file_path, 'w', encoding='utf-8') as f:
+    with open(model_config_path, 'w', encoding='utf-8') as f:
         json.dump(OmegaConf.to_container(model_config, resolve=True), f, indent=4, ensure_ascii=False)
 
-    logging.info(f"웹과 통신할 config.json 저장 완료: {config_path}")
-    logging.info(f"서버 내부용 model_config.json 저장 완료: {json_file_path}")
+    logging.info(f"웹과 통신할 config.json 저장 완료: {user_config_path}")
+    logging.info(f"서버 내부용 model_config.json 저장 완료: {model_config_path}")
     logging.info(f"HTML 저장 완료: {eda_html_path}")
 
-    return json_file_path
-
-
-# def apply_user_setting(user_config_path, model_config_path):
-#     '''
-#     Summary:
-#     Args:
-#     Return
-#     '''
-#     user_config = OmegaConf.load(user_config_path)
-#     model_config = OmegaConf.load(model_config_path)
-
-#     logging.info("사용자 설정을 모델 설정 파일에 적용합니다.")
-
-#     target_feature = config.get("targat_feature")
+    return model_config_path, user_config_path
 
 
 def _extract_filtered_eda(config):
@@ -102,7 +111,6 @@ def _extract_filtered_eda(config):
             'p_missing': info.get('p_missing', None),
             'n_distinct': info.get('n_distinct', None),
             'p_distinct': info.get('p_distinct', None),
-            'chi_squared': info.get('chi_squared', None),
             'mean': info.get('mean', None),
             'std': info.get('std', None),
             'variance': info.get('variance', None),
@@ -119,9 +127,9 @@ def _extract_filtered_eda(config):
         }
         for var_name, info in config.get('variables', {}).items()
     }
-
+    
     return filtered_data
 
 if __name__ == "__main__":
-    config_path = '/data/ephemeral/home/uploads/config.json'
-    generate_model_config(config_path)
+    data_path = '/data/ephemeral/home/uploads/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    model_config_path, user_config_path = generate_config(data_path)
