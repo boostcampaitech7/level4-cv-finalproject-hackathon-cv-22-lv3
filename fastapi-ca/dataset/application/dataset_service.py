@@ -30,7 +30,6 @@ class DatasetService:
         flow_id: str,
     ) -> tuple[int, list[Dataset]]:
         return self.dataset_repo.get_datasets_by_flow(
-            project_id=project_id,
             flow_id=flow_id,
             page=page,
             items_per_page=items_per_page,
