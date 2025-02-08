@@ -14,6 +14,8 @@ def user_base_setting(all_features, numeric_key_features):
     print(f'\n\n ======= 현재는 기본 세팅값을 설정하는 화면입니다 =======')
     print(f'Target Feature 리스트 \n {all_features}\n')
     target_feature = input('최종적으로 예측하고자 하는 변수를 입력해주세요. (기본값: Attrition) : ') 
+    if target_feature == '':
+        target_feature = 'Attrition'
     
 
     print(f'조절 가능한 Feature들. : \n {numeric_key_features}')
@@ -96,7 +98,7 @@ def base_optimize_setting(config):
         if f_info["type"] == "Numeric":
             print(f'{f}의 범위: ({f_info["min"]}, {f_info["max"]})')
             min_max = input(f'{f}의 제어가능한 범위를 설정하기 위해 최소값, 최대값 순으로 입력해주세요. (쉼표로 구분, 기본값: 전체 값에 대한 min, max) : ')
-            opt_range[f] = [int(mm.strip()) for mm in min_max.split(",") if mm.strip()]
+            opt_range[f] = [float(mm.strip()) for mm in min_max.split(",") if mm.strip()]
         else:
             _range = [0, f_info["n_distinct"]-1]
             opt_range[f] = _range
