@@ -14,8 +14,7 @@ def user_feature(data, model_config_path):
         "target_range" : {},
         "model_result" : None,
         "top_models" : None,
-        "feature_importance": None,
-
+        "feature_importance": None
         }
 
     config = OmegaConf.load(model_config_path)

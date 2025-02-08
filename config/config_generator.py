@@ -82,7 +82,7 @@ def generate_config(data_path):
         "final_features" : None,
         "categorical_features" : categorical_feature,
         "model_result" : {},
-        "Top_models" : {},
+        "top_models" : {},
         "feature_importance" : {},
     }))
 

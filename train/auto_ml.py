@@ -134,7 +134,7 @@ def automl_module(data, task, target, preset, time_to_train, config):
 
     leaderboard = predictor.leaderboard(test_df, silent=True)
     print(f'LeaderBoard Result :\n{leaderboard}')
-    config["Top_models"] = leaderboard.to_dict()
+    config["top_models"] = leaderboard.to_dict()
 
     feature_importance = predictor.feature_importance(test_df)
     print(f'Feature Importance:\n{feature_importance}')
