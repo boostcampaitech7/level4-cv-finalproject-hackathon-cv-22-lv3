@@ -29,12 +29,10 @@ def process_2(model_config_path, original_df):
     config_updates = {
         "target_feature": "Attrition",
         "controllable_feature": [
-            "Monthly Income",
+            "MonthlyIncome",
             "WorkLifeBalance"
         ],
         "necessary_feature": [
-            "Monthly Income",
-            "WorkLifeBalance",
             "Age",
             "Education",
             "DistanceFromHome",
@@ -101,20 +99,20 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
     
     model_config_path = update_config(model_config_path, config_updates)
     
-    test_df = preprocessor.decode(preprocessed_df, controllable_feature)
+    preprocessed_df = preprocessor.decode(preprocessed_df, controllable_feature)
 
     # 최적화를 진행한다.
-    comparison_df, original_prediction, optimized_prediction_value = feature_optimize(model_config_path, model, test_df)
+    final_dict = feature_optimize(model_config_path, model, preprocessed_df)
     
-    return comparison_df, original_prediction, optimized_prediction_value
+    return final_dict
 
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/uploads/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    data_path = '/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv'
     
     model_config_path, user_config_path, original_df = process_1(data_path)
     
     model_config_path, model, test_df, preprocessed_df, preprocessor = process_2(model_config_path, original_df)
     
-    comparison_df, original_prediction, optimized_prediction_value = process_3(model_config_path, model, test_df, preprocessed_df, preprocessor)
+    final_dict = process_3(model_config_path, model, test_df, preprocessed_df, preprocessor)

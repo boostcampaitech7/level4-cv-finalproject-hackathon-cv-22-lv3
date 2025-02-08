@@ -1,10 +1,13 @@
 import logging
 import pandas as pd
-
 from .optimization import optimizeing_features
 from utils.print_feature_type import compare_features
 from omegaconf import OmegaConf
-import pandas as pd
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 def feature_optimize(config_path, model, test_df):
     """Feature를 변경하면서 모델 최적화를 진행합니다.
@@ -21,7 +24,7 @@ def feature_optimize(config_path, model, test_df):
         test_df (pd.DataFrame): 테스트(검증) 데이터
         model (TabularPredictor or 유사 객체): 학습된 모델
         categorical_features (list): 카테고리형 Feature 리스트
-        fixed_features (list): 변경 불가능한 Feature 리스트
+        X_features (list): 변경 불가능한 Feature 리스트
 
     Returns:
         comparison_df (pd.DataFrame): 변경 전/후 Feature 비교표
@@ -36,7 +39,7 @@ def feature_optimize(config_path, model, test_df):
     
     task = config.get("task")
     categorical_features = config.get("categorical_features")
-    fixed_features = config.get("necessary_feature")
+    X_features = config.get("final_features")
     target = config.get("target_feature")            # (예: 'Attrition')
     
     opt_config = config['optimization']
@@ -51,6 +54,7 @@ def feature_optimize(config_path, model, test_df):
     # ==============================
     # [1] 회귀인 경우
     # ==============================
+    print(f'test_df.columns: {test_df.columns}======================================')
     if task == 'regression':
         # test_df에서 최대 5개 샘플을 무작위 추출(5개 미만이면 전부 사용)
         if len(test_df) < 5:
@@ -93,7 +97,7 @@ def feature_optimize(config_path, model, test_df):
 
                 # 고정 Feature 복원
                 optimized_sample = best_features.copy()
-                for feat in fixed_features:
+                for feat in X_features:
                     if feat in original_sample:
                         optimized_sample[feat] = original_sample[feat]
 
@@ -167,10 +171,14 @@ def feature_optimize(config_path, model, test_df):
                 continue
 
             # 고정 피처 복원
-            for f in fixed_features:
-                if f in original_sample:
-                    best_feat[f] = original_sample[f]
+            # for f in X_features:
+            #     if f in original_sample:
+            #         best_feat[f] = original_sample[f]
+            print(f'X_features: {X_features}')
 
+            print('================================================================')
+            print(f'original_sample: {original_sample}')
+            print('================================================================')
             # 변경 전후 feature 비교
             comparison_df = compare_features(original_sample, pd.Series(best_feat), categorical_features)
 
