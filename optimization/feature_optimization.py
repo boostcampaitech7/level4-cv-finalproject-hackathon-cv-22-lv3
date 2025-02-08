@@ -3,42 +3,42 @@ import pandas as pd
 
 from .optimization import optimizeing_features
 from utils.print_feature_type import compare_features
+from omegaconf import OmegaConf
+import pandas as pd
 
+def feature_optimize(config_path, model, test_df):
+    """Feature를 변경하면서 모델 최적화를 진행합니다.
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO) 
+    Args:
+        task (str): 모델이 수행할 task (regression/binary/multiclass)
+        config (dict): 사용자 입력이 포함된 config (json) 파일
+            - config['target_feature'] : 예측(학습) 대상 컬럼명
+            - config['optimization'] : 아래 내용을 포함
+                * 'direction': minimize or maximize
+                * 'n_trials': Optuna 최적화 반복 횟수
+                * 'target_class': 분류 문제에서 최적화할 클래스
+                * 'opt_range': 변경 가능 Feature 범위 딕셔너리
+        test_df (pd.DataFrame): 테스트(검증) 데이터
+        model (TabularPredictor or 유사 객체): 학습된 모델
+        categorical_features (list): 카테고리형 Feature 리스트
+        fixed_features (list): 변경 불가능한 Feature 리스트
 
-
-def feature_optimize(task, config, test_df, model, 
-                     categorical_features, fixed_features):
-    """
-    Feature를 변경하면서 모델 최적화를 진행합니다.
-    
-    * 회귀(regression):
-      - test_df에서 무작위 5개 샘플을 추출해 각각 최적화 -> 여러 샘플 결과를 dict로 반환
-    * 분류(binary/multiclass):
-      - target_class와 다른 라벨인 데이터를 최대 10개 추출 -> 각각 최적화 -> 여러 샘플 결과를 dict로 반환
-    
     Returns:
-        dict:
-          {
-            'task': 'regression' or 'classification',
-            'results': [  # 각 샘플별 결과 리스트
-              {
-                'index': 샘플 인덱스,
-                'comparison_df': 변경 전/후 Feature 비교표,
-                'original_prediction': 최적화 전 예측,
-                'optimized_prediction': 최적화 후 예측,
-                'improvement': 개선도,
-                ...
-              },
-              ...
-            ],
-            'average_improvement': <평균 개선도> (optional),
-            'target_class': <분류의 경우에만 포함>
-          }
+        comparison_df (pd.DataFrame): 변경 전/후 Feature 비교표
+        original_prediction (float): 변경 전 모델 예측값
+        optimized_prediction_value (float): 최적화된 Feature로부터 얻은 예측값
     """
-    target = config['target_feature']            
+
+    # ===========================
+    # 1) 설정값 가져오기
+    # ===========================
+    config = OmegaConf.load(config_path)
+    
+    task = config.get("task")
+    categorical_features = config.get("categorical_features")
+    fixed_features = config.get("necessary_feature")
+    target = config.get("target_feature")            # (예: 'Attrition')
+    
     opt_config = config['optimization']
     direction = opt_config['direction']         
     n_trials = opt_config['n_trials']           
