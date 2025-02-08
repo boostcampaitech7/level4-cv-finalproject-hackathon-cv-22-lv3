@@ -181,6 +181,7 @@ def feature_optimize(config_path, model, test_df):
 
             # 변경 전후 feature 비교
             comparison_df = compare_features(original_sample, pd.Series(best_feat), categorical_features)
+            logger.info(comparison_df, extra={'force': True})
 
             # 최종 모델 예측
             try:

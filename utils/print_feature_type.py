@@ -18,7 +18,4 @@ def compare_features(original_features, optimized_features, categorical_features
         'Optimized': optimized_features.values
     })
     
-    print("\nFeature Comparison:")
-    print(comparison_df.to_string(index=False))
-    print()
     return comparison_df.to_string(index=False)
