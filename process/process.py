@@ -12,6 +12,8 @@ from optimization.feature_optimization import feature_optimize
 from datetime import datetime, timezone, timedelta
 from utils.logger_config import logger
 
+from gpt import gpt_solution
+
 
 def process_1(data_path):
     '''
@@ -44,9 +46,9 @@ def process_2(model_config_path, original_df):
             "DistanceFromHome",
             "OverTime"
         ],
-        "limited_feature" : 6,
+        "limited_feature" : 10,
         "model" : {
-            "time_to_train": 100,
+            "time_to_train": 120,
             "model_quality": 0
         }
     }
@@ -94,12 +96,12 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
     config_updates = {
         "optimization": {
             "direction": "maximize",
-            "n_trials": 30,
+            "n_trials": 50,
             "target_class": 0,
             "opt_range": {
                 "MonthlyIncome": [
-                    1500,
-                    15000
+                    20,
+                    20
                     ],
                 "WorkLifeBalance": [
                     0,
@@ -123,7 +125,7 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/WA_Fn-UseC_-HR-Employee-Attrition.csv'
     logger.info("🚀 AutoML 파이프라인 실행 시작!")    
     model_config_path, user_config_path, original_df = process_1(data_path)
     
@@ -131,3 +133,7 @@ if __name__ == '__main__':
     
     final_dict = process_3(model_config_path, model, test_df, preprocessed_df, preprocessor)
     logger.info("🏁 전체 프로세스 완료!")
+    result_json = gpt_solution(final_dict, model_config_path)
+    print('이것은 이제 최종 result json입니다람쥐')
+    print(result_json)
+    
