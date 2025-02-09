@@ -7,6 +7,7 @@ from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_sc
 from autogluon.tabular import TabularPredictor
 from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
 from model.regression_metrics import adjusted_r2_score
+from optimization.feature_optimization import convert_to_serializable
 
 def automl_module(data, task, target, preset, time_to_train, config):
     """
@@ -114,7 +115,9 @@ def automl_module(data, task, target, preset, time_to_train, config):
 
     elif task in ['binary', 'multiclass']:
         accuracy = accuracy_score(test_df[target], y_pred)
+        accuracy = convert_to_serializable(accuracy)
         f1 = f1_score(test_df[target], y_pred, average='weighted')
+        f1 = convert_to_serializable(f1)
 
         logger.info("AutoGluon Classifier 결과:")
         logger.info(f" - Accuracy : {accuracy:.4f}")

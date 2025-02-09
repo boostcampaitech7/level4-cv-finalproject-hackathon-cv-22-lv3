@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 @dataclass
-class Config:
+class Inform:
     id: str
     dataset_id: str
-    path: str
+    model_config_path: str
+    user_config_path: str

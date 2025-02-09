@@ -7,8 +7,8 @@ from flow.application.flow_service import FlowService
 from flow.infra.repository.flow_repo import FlowRepository
 from dataset.application.dataset_service import DatasetService
 from dataset.infra.repository.dataset_repo import DatasetRepository
-from config.application.config_service import ConfigService
-from config.infra.repository.config_repo import ConfigRepository
+from inform.application.inform_service import InformService
+from inform.infra.repository.inform_repo import InformRepository
 from fastapi import BackgroundTasks
 
 class Container(containers.DeclarativeContainer):
@@ -18,7 +18,7 @@ class Container(containers.DeclarativeContainer):
             "project",
             "flow",
             "dataset",
-            "config",
+            "inform",
         ],
     )
 
@@ -33,5 +33,5 @@ class Container(containers.DeclarativeContainer):
     flow_service = providers.Factory(FlowService, flow_repo=flow_repo)
     dataset_repo = providers.Factory(DatasetRepository)
     dataset_service = providers.Factory(DatasetService, dataset_repo=dataset_repo)
-    config_repo = providers.Factory(ConfigRepository)
-    config_service = providers.Factory(ConfigService, config_repo=config_repo)
+    inform_repo = providers.Factory(InformRepository)
+    inform_service = providers.Factory(InformService, inform_repo=inform_repo)

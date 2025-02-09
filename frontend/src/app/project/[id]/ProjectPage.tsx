@@ -12,6 +12,7 @@ import type { Flow } from "@/types/flow"
 import type { Dataset } from "@/types/dataset"
 import { useToastMessage } from "@/components/ui/use-toast"
 import { ApiError } from "@/types/api-error"
+import { toast } from "sonner"
 
 interface ProjectPageProps {
   id: string
@@ -242,6 +243,17 @@ export function ProjectPage({ id }: ProjectPageProps) {
     }
   }
 
+  const handleCreateInform = async (datasetId: string) => {
+    try {
+      await api.createInform(datasetId)
+      return true
+    } catch (error) {
+      console.error("Failed to create Inform:", error)
+      toast.error("Inform 생성에 실패했습니다.")
+      return false
+    }
+  }
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes"
     const k = 1024
@@ -329,15 +341,20 @@ export function ProjectPage({ id }: ProjectPageProps) {
                   size="sm"
                   disabled={selectedFlowDatasets.length === 0}
                   className="bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-50"
-                  onClick={() => {
+                  onClick={async () => {
                     if (selectedFlowId) {
-                      router.push(`/project/${id}/flow/${selectedFlowId}/data-settings`)
+                      if (selectedFlowDatasets.length === 0) {
+                        toast.error("데이터셋이 없습니다.")
+                        return
+                      }
+                      toast.loading("데이터 설정 중...")
+                      const success = await handleCreateInform(selectedFlowDatasets[0].id)
+                      toast.dismiss()
+                      if (success) {
+                        router.push(`/project/${id}/flow/${selectedFlowId}/data-settings`)
+                      }
                     } else {
-                      showToast({
-                        title: "오류",
-                        description: "플로우를 선택해주세요.",
-                        variant: "destructive",
-                      })
+                      toast.error("플로우를 선택해주세요.")
                     }
                   }}
                 >

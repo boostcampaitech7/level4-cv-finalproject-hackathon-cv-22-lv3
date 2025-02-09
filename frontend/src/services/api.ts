@@ -239,6 +239,35 @@ export const api = {
 
     return handleResponse<void>(response)
   },
+  async createInform(datasetId: string): Promise<InformResponse> {
+    const response = await fetch(`${API_BASE_URL}/informs/${datasetId}`, {
+      method: "POST",
+      headers: {
+        ...getAuthHeader(),
+      },
+    })
+
+    return handleResponse<InformResponse>(response)
+  },
+  async updateInform(informId: string, config_updates: any): Promise<InformResponse> {
+    const response = await fetch(`${API_BASE_URL}/informs/${informId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(config_updates),
+    })
+
+    return handleResponse<InformResponse>(response)
+  },
+  async getInformByDataset(datasetId: string): Promise<InformResponse> {
+    const response = await fetch(`${API_BASE_URL}/informs/dataset/${datasetId}`, {
+      headers: getAuthHeader(),
+    })
+
+    return handleResponse<InformResponse>(response)
+  },
 }
 
 // Add these types at the end of the file
@@ -255,5 +284,13 @@ export interface GetProjectsResponse {
   total_count: number
   page: number
   projects: ProjectResponse[]
+}
+
+// InformResponse 인터페이스 추가
+export interface InformResponse {
+  id: string
+  dataset_id: string
+  model_inform_path: string
+  user_inform_path: string
 }
 
