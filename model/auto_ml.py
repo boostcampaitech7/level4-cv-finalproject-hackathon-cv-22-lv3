@@ -6,6 +6,7 @@ from autogluon.tabular import TabularPredictor
 from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
 from omegaconf import OmegaConf
 
+
 def automl_module(data, task, target, preset, time_to_train):
     """
     Autogluon 라이브러리를 활용하여 자동으로 모델을 실행시킵니다.
@@ -24,16 +25,7 @@ def automl_module(data, task, target, preset, time_to_train):
     Returns:
         predictor(Object): 학습된 모델
         test_df(pd.DataFrame): test에 사용된 데이터셋
-    """
-    # preset 정수를 문자열 preset으로 변환하는 매핑
-    preset_mapping = {
-        0: "best_quality",
-        1: "high_quality",
-        2: "good_quality",
-        3: "medium_quality"
-    }
-    preset_str = preset_mapping.get(preset, "medium_quality")  # 기본값은 medium_quality
-
+    """        
     if task == 'regression':
         train_df, test_df = train_test_split(data, test_size=0.2, random_state=42)
     else:
@@ -96,7 +88,7 @@ def automl_module(data, task, target, preset, time_to_train):
     ).fit(
         train_data=train_df,
         time_limit=time_to_train,          
-        presets=preset_str,  # 정수 대신 변환된 preset 문자열 사용
+        presets=preset,  # 정수 대신 변환된 preset 문자열 사용
         hyperparameters=hyperparameters,
         hyperparameter_tune_kwargs=hyperparameter_tune_kwargs  # Bayesian Optimization 적용
     )
@@ -151,8 +143,9 @@ def train_model(data, config_path):
     target = config['target_feature']
     selected_quality = model_config['model_quality']
     time_to_train = model_config['time_to_train']
+    preset = f'{selected_quality}_quality'
     try:
-        model, test_df = automl_module(data, task, target, selected_quality, time_to_train)
+        model, test_df = automl_module(data, task, target, preset, time_to_train)
         logger.info('AutoGLuon에서 기대하는 클래스\n\n\n\n')
         logger.info(model.class_labels)
         logger.info('\n\n==========================================\n')
