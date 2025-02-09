@@ -7,6 +7,7 @@ from config.update_config import update_config
 from data.model_input_builder import feature_selection, make_filtered_data
 from data.data_preprocess import preprocessing
 from utils.determine_feature import determine_problem_type
+from utils.user_feature import user_feature
 from model.auto_ml import train_model
 from optimization.feature_optimization import feature_optimize
 from datetime import datetime, timezone, timedelta
@@ -73,13 +74,16 @@ def process_2(model_config_path, original_df):
     
     # user_config 만들어서 보내주기
     '''
-    - 학습 결과 → train_result : {}, 학습 진행 후 → 확정
-    - 특성 중요도 → feature_importance : {}, 학습 진행 전에도 가능
-    - TOP10 모델의 정보 → top_models : {} → 학습 진행 후 → 확정
     - 제어 변수들의 범위 → Categorical, Numeric Type 다르게 설정
-    - 타겟 변수의 범위 → Categorical, Numeric
+    - 타겟 변수 범위 → Categorical, Numeric
     - 회귀, 분류, Multiclass 등 task : {}, 학습 진행 전에도 가능
+
+    - 학습 결과 → train_result : {}, 학습 진행 후 → 확정
+    - 특성 중요도 → feature_importance : {}, 학습 진행 전에도 가능, 피쳐, 상관계수 값
+    - TOP10 모델의 정보 → top_models : {} → 학습 진행 후 → 확정, 모델 이름, 성능
     '''
+    update_config_info = user_feature(df, model_config_path)
+    user_config_path = update_config(model_config_path, update_config_info, user=True)
 
     return model_config_path, model, test_df, preprocessed_df, preprocessor
 

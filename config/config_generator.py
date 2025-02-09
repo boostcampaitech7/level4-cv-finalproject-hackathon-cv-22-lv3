@@ -80,8 +80,12 @@ def generate_config(data_path):
         "features": list(data.columns),
         "filtered_data": filtered_data,
         "correlations": correlations,
+        "correlations_result": None,
         "final_features" : None,
-        "categorical_features" : categorical_feature
+        "categorical_features" : categorical_feature,
+        "model_result" : {},
+        "top_models" : {},
+        "feature_importance" : {},
     }))
 
     with open(model_config_path, 'w', encoding='utf-8') as f:
