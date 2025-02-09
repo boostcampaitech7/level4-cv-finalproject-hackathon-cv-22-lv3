@@ -48,7 +48,7 @@ def process_2(model_config_path, original_df):
         "limited_feature" : 6,
         "model" : {
             "time_to_train": 100,
-            "model_quality": 0
+            "model_quality": "best"
         }
     }
     
