@@ -17,15 +17,15 @@ interface ModelTrainingDialogProps {
 export interface ModelTrainingData {
   maxAttributes: number
   trainingTime: number
-  modelQuality: number
+  modelQuality: string
 }
 
-const modelQualityMap = {
-  best: 0,
-  high: 1,
-  good: 2,
-  medium: 3,
-}
+// const modelQualityMap = {
+//   best: 0,
+//   high: 1,
+//   good: 2,
+//   medium: 3,
+// }
 
 export function ModelTrainingDialog({ isOpen, onClose, onSubmit, maxAttributeCount }: ModelTrainingDialogProps) {
   const [maxAttributes, setMaxAttributes] = React.useState(maxAttributeCount.toString())
@@ -37,7 +37,7 @@ export function ModelTrainingDialog({ isOpen, onClose, onSubmit, maxAttributeCou
     onSubmit({
       maxAttributes: Number(maxAttributes),
       trainingTime: Number(trainingTime),
-      modelQuality: modelQualityMap[modelQuality as keyof typeof modelQualityMap],
+      modelQuality: modelQuality,
     })
     onClose()
   }
