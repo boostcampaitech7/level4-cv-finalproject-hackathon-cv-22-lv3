@@ -7,11 +7,21 @@ interface DropZoneProps {
   onDrop: (e: React.DragEvent) => void
   children: React.ReactNode
   count: number
+  maxItems?: number // 새로운 prop 추가
 }
 
-export const DropZone: React.FC<DropZoneProps> = ({ title, onDrop, children, count }) => {
+export const DropZone: React.FC<DropZoneProps> = ({ title, onDrop, children, count, maxItems }) => {
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    if (maxItems && count >= maxItems) {
+      // 최대 아이템 수에 도달했을 때 드롭을 막습니다
+      return
+    }
+    onDrop(e)
   }
 
   return (
@@ -24,7 +34,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ title, onDrop, children, cou
           </span>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 p-3 overflow-hidden" onDrop={onDrop} onDragOver={handleDragOver}>
+      <CardContent className="flex-1 p-3 overflow-hidden" onDrop={handleDrop} onDragOver={handleDragOver}>
         <ScrollArea className="h-full pr-4">
           <div className="space-y-2">{children}</div>
         </ScrollArea>

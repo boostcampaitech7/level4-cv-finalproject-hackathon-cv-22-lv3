@@ -8,6 +8,7 @@ import { DraggableCard } from "@/components/DraggableCard"
 import { DropZone } from "@/components/DropZone"
 import type React from "react"
 import { ModelTrainingDialog, type ModelTrainingData } from "@/components/ModelTrainingDialog"
+import { toast } from "sonner"
 
 interface Attribute {
   id: string
@@ -17,7 +18,6 @@ interface Attribute {
 
 type VariableCategory = "all" | "environment" | "control" | "target"
 
-// 속성을 이름 기준으로 정렬하는 함수
 const sortAttributes = (attributes: Attribute[]): Attribute[] => {
   return [...attributes].sort((a, b) => a.name.localeCompare(b.name))
 }
@@ -36,6 +36,7 @@ export default function AttributeSettingsPage() {
   })
   const [loading, setLoading] = useState(true)
   const [isTrainingDialogOpen, setIsTrainingDialogOpen] = useState(false)
+  const [informId, setInformId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchAttributes = async () => {
@@ -63,9 +64,13 @@ export default function AttributeSettingsPage() {
               setVariableCategories((prev) => ({ ...prev, all: sortAttributes(newAttributes) }))
             }
           }
+
+          // Fetch the inform for this dataset
+          const informResponse = await api.getInformByDataset(response.datasets[0].id)
+          setInformId(informResponse.id)
         }
       } catch (error) {
-        console.error("Failed to fetch attributes:", error)
+        console.error("Failed to fetch attributes or inform:", error)
       } finally {
         setLoading(false)
       }
@@ -102,10 +107,42 @@ export default function AttributeSettingsPage() {
     }
   }
 
-  const handleTrainingSubmit = (data: ModelTrainingData) => {
-    console.log("Training data:", data)
-    // TODO: 여기에 실제 모델 학습 로직 구현
-    setIsTrainingDialogOpen(false)
+  const handleTrainingSubmit = async (data: ModelTrainingData) => {
+    if (variableCategories.target.length === 0) {
+      toast.error("타겟 변수를 선택해주세요.")
+      return
+    }
+    if (!informId) {
+      toast.error("Inform ID를 찾을 수 없습니다.")
+      return
+    }
+
+    const config_updates = {
+      target_feature: variableCategories.target[0]?.name || "",
+      controllable_feature: variableCategories.control.map((attr) => attr.name),
+      necessary_feature: variableCategories.environment.map((attr) => attr.name),
+      limited_feature: data.maxAttributes,
+      model: {
+        time_to_train: data.trainingTime,
+        model_quality: data.modelQuality,
+      },
+    }
+
+    toast.loading("모델 학습 중...", { duration: Number.POSITIVE_INFINITY })
+
+    try {
+      const inform = await api.updateInform(informId, config_updates)
+      toast.dismiss()
+      toast.success("모델 설정이 업데이트되었습니다.")
+      console.log("Updated Inform:", inform)
+
+      // 분석 결과 페이지로 이동
+      router.push(`/project/${params.id}/flow/${params.flowId}/analysis-result`)
+    } catch (error) {
+      toast.dismiss()
+      console.error("Failed to update Inform:", error)
+      toast.error("모델 설정 업데이트에 실패했습니다.")
+    }
   }
 
   if (loading) return <div>Loading...</div>
@@ -115,7 +152,11 @@ export default function AttributeSettingsPage() {
       <div className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">속성 설정</h1>
-          <Button onClick={() => setIsTrainingDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+          <Button
+            onClick={() => setIsTrainingDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={variableCategories.target.length === 0}
+          >
             모델 학습
           </Button>
         </div>
@@ -135,6 +176,7 @@ export default function AttributeSettingsPage() {
               }
               onDrop={(e) => handleDrop(e, category)}
               count={variableCategories[category].length}
+              maxItems={category === "target" ? 1 : undefined}
             >
               {variableCategories[category].map((attribute) => (
                 <DraggableCard
@@ -151,6 +193,7 @@ export default function AttributeSettingsPage() {
           isOpen={isTrainingDialogOpen}
           onClose={() => setIsTrainingDialogOpen(false)}
           onSubmit={handleTrainingSubmit}
+          maxAttributeCount={attributes.length}
         />
       </div>
     </div>
