@@ -1,8 +1,9 @@
 import json
 import logging
+from utils.logger_config import logger
 import pandas as pd
 import os.path as osp
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from omegaconf import OmegaConf
 from ydata_profiling import ProfileReport
 from utils.analysis_feature import identify_categorical_features
@@ -23,12 +24,13 @@ def generate_config(data_path):
     
     try:
         data = pd.read_csv(data_path)
-        logging.info(f"Data loaded from {data_path}")
+        logger.info(f"Data loaded from {data_path}")
     except Exception as e:
-        logging.error(f"Failed to load data: {e}")
+        logger.error(f"Failed to load data: {e}")
         return
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    kst = timezone(timedelta(hours=9))
+    timestamp = datetime.now(kst).strftime("%Y%m%d_%H%M%S")
 
     # 저장 경로 설정
     user_config_filename = f'{timestamp}_user_config.json'
@@ -89,9 +91,9 @@ def generate_config(data_path):
     with open(model_config_path, 'w', encoding='utf-8') as f:
         json.dump(OmegaConf.to_container(model_config, resolve=True), f, indent=4, ensure_ascii=False)
 
-    logging.info(f"웹과 통신할 config.json 저장 완료: {user_config_path}")
-    logging.info(f"서버 내부용 model_config.json 저장 완료: {model_config_path}")
-    logging.info(f"HTML 저장 완료: {eda_html_path}")
+    logger.info(f"웹과 통신할 config.json 저장 완료: {user_config_path}")
+    logger.info(f"서버 내부용 model_config.json 저장 완료: {model_config_path}")
+    logger.info(f"HTML 저장 완료: {eda_html_path}")
 
     return model_config_path, user_config_path, data
 

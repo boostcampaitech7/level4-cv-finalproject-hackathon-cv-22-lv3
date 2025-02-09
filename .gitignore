@@ -7,3 +7,5 @@ AutogluonModels
 *.html
 ydata_profiling
 test_optim
+logs
+*.log

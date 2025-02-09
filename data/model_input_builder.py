@@ -2,7 +2,7 @@ import json
 import logging
 import pandas as pd
 from omegaconf import OmegaConf
-from config.update_config import update_config
+from utils.logger_config import logger
 
 def feature_selection(config_path, feature_len=100):
     config = OmegaConf.load(config_path)
@@ -15,11 +15,11 @@ def feature_selection(config_path, feature_len=100):
     if limited_feature == -1:
         limited_feature = feature_len
     #print(f"총 설명변수의 개수: {limited_feature}\n\n")
-    logging.info(f'총 설명변수의 개수 : {limited_feature}')
+    logger.info(f'총 설명변수의 개수 : {limited_feature}')
 
     correlations_list = config.get("correlations", {}).get("auto", [])
     if not correlations_list:
-        print("correlations -> auto 항목이 비어 있습니다.")
+        logger.info("correlations -> auto 항목이 비어 있습니다.")
         # controllable feature와 나머지 feature를 구분하여 리턴합니다.
         # 단, correlations 데이터가 없으므로 기본 필수 feature만 전달합니다.
         controllable_final = controllable_feature
@@ -34,11 +34,10 @@ def feature_selection(config_path, feature_len=100):
             for k, v in corr_dict.items():
                 candidate_correlations[k] = v
 
-    print(f"정렬 전 candidate_correlations: {candidate_correlations}\n\n")
     # target_feature와의 상관계수 절대값 기준 내림차순 정렬
     candidate_correlations = dict(sorted(candidate_correlations.items(), key=lambda x: x[1], reverse=True))
+    
     config["correlations_result"] = candidate_correlations
-    print(f"정렬 후 candidate_correlations: {candidate_correlations}\n\n")
 
     # 최종 Feature 리스트 구성: 우선 필수 feature를 포함하고, 상관관계가 높은 순서대로 추가합니다.
     final_features = controllable_feature + environment_feature
@@ -51,17 +50,17 @@ def feature_selection(config_path, feature_len=100):
             environment_feature.append(feature)
 
     # controllable_features에 포함되는 feature와 나머지 feature로 분리합니다.
-    print(f"controlled data : {controllable_feature}")
-    print("\n\n")
-    print(f"ENV data : {environment_feature}")
+    logger.info(f"controlled data : {controllable_feature}")
+    logger.info(f"ENV data : {environment_feature}")
 
     # final_features에 모델 훈련에 사용되는 모든 변수를 저장합니다. 
     final_features = controllable_feature + environment_feature
     config["final_features"] = final_features
-    print(f"\n\nfinal_features: {final_features}")
+    logger.info(f"final_features: {final_features}")
     
     with open(config_path, 'w', encoding='utf-8') as f:
         json.dump(OmegaConf.to_container(config, resolve=True), f, indent=4, ensure_ascii=False)
+
 
 def make_filtered_data(config_path, data):
     """

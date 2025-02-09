@@ -1,7 +1,8 @@
-import json
-import logging
 import pandas as pd
+from utils.logger_config import logger
 from omegaconf import OmegaConf
+import logging
+import json
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
@@ -56,9 +57,9 @@ def automl_module(data, task, target, preset, time_to_train, config):
             # resampled 데이터를 DataFrame으로 재구성
             train_df = pd.concat([pd.DataFrame(X_res, columns=X_train.columns), 
                                   pd.DataFrame(y_res, columns=[target])], axis=1)
-            print("SMOTE를 적용하여 학습 데이터의 클래스 불균형을 보정하였습니다.")
+            logger.info("SMOTE를 적용하여 학습 데이터의 클래스 불균형을 보정하였습니다.")
         except Exception as e:
-            logging.error(f"SMOTE 적용 중 오류 발생: {e}")
+            logger.error(f"SMOTE 적용 중 오류 발생: {e}")
             # SMOTE 실패시 원본 데이터를 사용하도록 함
             pass
 
@@ -71,7 +72,7 @@ def automl_module(data, task, target, preset, time_to_train, config):
             minority_class = counts.idxmin()
             # LightGBM과 XGBoost에서 scale_pos_weight는 다수 클래스 대비 소수 클래스의 비율
             scale_pos_weight = counts[majority_class] / counts[minority_class]
-            print(f"계산된 scale_pos_weight: {scale_pos_weight:.2f}")
+            logger.info(f"계산된 scale_pos_weight: {scale_pos_weight:.2f}")
 
             hyperparameters = {
                 'GBM': {'scale_pos_weight': scale_pos_weight},
@@ -79,7 +80,7 @@ def automl_module(data, task, target, preset, time_to_train, config):
                 # 필요 시 CatBoost 등 다른 모델도 설정 가능
             }
         else:
-            print("이진 분류가 아닌 경우 클래스 가중치 조정은 생략합니다.")
+            logger.info("이진 분류가 아닌 경우 클래스 가중치 조정은 생략합니다.")
     
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # Bayesian Optimization을 사용하기 위한 설정
@@ -109,10 +110,10 @@ def automl_module(data, task, target, preset, time_to_train, config):
     if task == 'regression':
         mae = mean_absolute_error(test_df[target], y_pred)
         r2 = r2_score(test_df[target], y_pred)
-        print("AutoGluon Regressor 결과:")
-        print(f" - MAE : {mae:.4f}")
-        print(f" - R^2 : {r2:.4f}")
-        
+        logger.info("AutoGluon Regressor 결과:")
+        logger.info(f" - MAE : {mae:.4f}")
+        logger.info(f" - R^2 : {r2:.4f}")
+
         config["model_result"] = {
             "MAE": round(mae, 4),
             "R2": round(r2, 4)
@@ -121,10 +122,11 @@ def automl_module(data, task, target, preset, time_to_train, config):
     elif task in ['binary', 'multiclass']:
         accuracy = accuracy_score(test_df[target], y_pred)
         f1 = f1_score(test_df[target], y_pred, average='weighted')
-        print("AutoGluon Classifier 결과:")
-        print(f" - Accuracy : {accuracy:.4f}")
-        print(f" - F1 Score : {f1:.4f}")
-        
+
+        logger.info("AutoGluon Classifier 결과:")
+        logger.info(f" - Accuracy : {accuracy:.4f}")
+        logger.info(f" - F1 Score : {f1:.4f}")
+
         config["model_result"] = {
             "accuracy": round(accuracy, 4),
             "f1_score": round(f1, 4)
@@ -133,19 +135,20 @@ def automl_module(data, task, target, preset, time_to_train, config):
         raise ValueError(f"Unsupported task type: {task}")
 
     leaderboard = predictor.leaderboard(test_df, silent=True)
-    print(f'LeaderBoard Result :\n{leaderboard}')
+    logger.info(f'LeaderBoard Result :\n{leaderboard}')
     config["top_models"] = leaderboard.to_dict()
-
+    
     feature_importance = predictor.feature_importance(test_df)
-    print(f'Feature Importance:\n{feature_importance}')
-    print('==============================================================\n')
-    print('==============================================================\n')
+    logger.info(f'Feature Importance:\n{feature_importance}')
+    logger.info('==============================================================\n')
+    logger.info('==============================================================\n')
     config["feature_importance"] = feature_importance.to_dict()
-
+    
     evaluation = predictor.evaluate(test_df)
-    print(f'Evaluation Results:\n{evaluation}')
-    print('==============================================================\n')
-    print('==============================================================\n')
+    logger.info(f'Evaluation Results:\n{evaluation}')
+    logger.info('==============================================================\n')
+    logger.info('==============================================================\n')
+    
     return predictor, test_df, config
 
 
@@ -168,16 +171,17 @@ def train_model(data, config_path):
     selected_quality = model_config['model_quality']
     time_to_train = model_config['time_to_train']
     try:
-        model, test_df, config = automl_module(data, task, target, selected_quality, time_to_train, config)
+        model, test_df = automl_module(data, task, target, selected_quality, time_to_train, config)
         
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(OmegaConf.to_container(config, resolve=True), f, indent=4, ensure_ascii=False)
 
-        print('AutoGLuon에서 기대하는 클래스\n\n\n\n')
-        print(model.class_labels)
-        print('\n\n==========================================\n')
+        logger.info('AutoGLuon에서 기대하는 클래스\n\n\n\n')
+        logger.info(model.class_labels)
+        logger.info('\n\n==========================================\n')
+    
     except Exception as e:
-        logging.error(f"Model training failed: {e}")
+        logger.error(f"Model training failed: {e}")
         return
 
     return model, test_df

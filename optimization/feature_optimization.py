@@ -1,12 +1,17 @@
+import json
 import logging
+import os.path as osp
 import pandas as pd
+import numpy as np
+from datetime import datetime, timezone, timedelta
 from .optimization import optimizeing_features
 from utils.print_feature_type import compare_features
 from omegaconf import OmegaConf
+from utils.logger_config import logger
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO)
 
 
 def feature_optimize(config_path, model, test_df):
@@ -54,7 +59,6 @@ def feature_optimize(config_path, model, test_df):
     # ==============================
     # [1] 회귀인 경우
     # ==============================
-    print(f'test_df.columns: {test_df.columns}======================================')
     if task == 'regression':
         # test_df에서 최대 5개 샘플을 무작위 추출(5개 미만이면 전부 사용)
         if len(test_df) < 5:
@@ -174,13 +178,10 @@ def feature_optimize(config_path, model, test_df):
             # for f in X_features:
             #     if f in original_sample:
             #         best_feat[f] = original_sample[f]
-            print(f'X_features: {X_features}')
 
-            print('================================================================')
-            print(f'original_sample: {original_sample}')
-            print('================================================================')
             # 변경 전후 feature 비교
             comparison_df = compare_features(original_sample, pd.Series(best_feat), categorical_features)
+            logger.info(comparison_df, extra={'force': True})
 
             # 최종 모델 예측
             try:
@@ -227,5 +228,23 @@ def feature_optimize(config_path, model, test_df):
             'count_changed_to_target': count_changed_to_target,
             'ratio_changed_to_target': ratio
         }
+
+        save_path = osp.dirname(config_path)
+        kst = timezone(timedelta(hours=9))
+        timestamp = datetime.now(kst).strftime("%Y%m%d_%H%M%S")
+        result_filename = f'{timestamp}_result.json'
+
+        final_config_path = osp.join(save_path, result_filename)
+        with open(final_config_path, "w", encoding="utf-8") as f:
+            json.dump(final_dict, f, ensure_ascii=False, indent=4, default=convert_to_serializable)
         
         return final_dict
+    
+
+# numpy.int64 → Python int 변환 함수
+def convert_to_serializable(obj):
+    if isinstance(obj, np.integer):  # numpy int 타입 확인
+        return int(obj)
+    elif isinstance(obj, np.floating):  # numpy float 타입 확인 (예방용)
+        return float(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
