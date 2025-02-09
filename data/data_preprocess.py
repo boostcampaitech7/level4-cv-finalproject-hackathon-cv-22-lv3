@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from omegaconf import OmegaConf
 from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, MinMaxScaler, StandardScaler, PowerTransformer
+from sklearn.preprocessing import RobustScaler, LabelEncoder, StandardScaler, PowerTransformer
 
 
 class DataPreprocessor:
@@ -11,17 +11,17 @@ class DataPreprocessor:
     summary: 데이터 전처리를 위한 클래스. 이상치 처리, 결측치 처리, 
              변수 특성별 처리를 수행합니다.
     '''
-    def __init__(self, df, data_info):
+    def __init__(self, df, config):
         '''
         args:
             df (pd.DataFrame): 원본 데이터.
             data_info (dict): 각 열의 전처리 정보를 담은 딕셔너리.
         '''
         self.data = df
-        self.data_info = data_info
+        self.data_info = config["filtered_data"]
         self.decoders = {}
 
-    def remove_outliers(self, cols):
+    def remove_outliers(self, col):
         '''
         summary: 지정된 열에서 IQR(Interquartile Range)를 기준으로 이상치를 제거합니다.
 
@@ -31,31 +31,24 @@ class DataPreprocessor:
         return: 
             pd.DataFrame: 이상치가 제거된 데이터프레임.
         '''
-        for col in cols:
-            feature = self.data_info[col]
+        feature = self.data_info[col]
 
-            if feature["type"] == "Numeric":
-                Q1 = feature["Q1"]
-                Q3 = feature["Q3"]
-                IQR = feature["iqr"]
-                kurtosis = feature["kurtosis"]
+        if feature["type"] == "Numeric":
+            kurtosis = feature["kurtosis"]
+            
+            if kurtosis > 3:
+                robust_scaler = RobustScaler()
                 
-                if kurtosis > 5:
-                    lower_bound = Q1 - 1.5 * IQR
-                    upper_bound = Q3 + 1.5 * IQR
-                    
-                    self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
-                
-                elif kurtosis < 1:
-                    lower_bound = Q1 - 3.0 * IQR
-                    upper_bound = Q3 + 3.0 * IQR
-                    
-                    self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
+                self.data[[col]] = robust_scaler.fit_transform(self.data[[col]])
+
+                self.decoders[col] = {
+                    "outliers" : robust_scaler
+                }
 
         return self.data
 
 
-    def handle_missing_values(self, cols, strategy="mean"):
+    def handle_missing_values(self, col, strategy="mean"):
         '''
         summary: 결측치를 열별로 처리합니다. 결측치 비율에 따라 행 삭제 또는 대체 기법을 적용합니다.
 
@@ -66,25 +59,24 @@ class DataPreprocessor:
         return: 
             pd.DataFrame: 결측치가 처리된 데이터프레임.
         '''
-        for col in cols:
-            feature = self.data_info[col]
-            missing_ratio = feature["p_missing"]            
-        
-            if missing_ratio < 0.03:
-                self.data = self.data.dropna(subset=[col])  # 결측치 비율이 3% 미만이면 행 삭제
-            else:
-                if strategy in ['mean', 'median', 'mode']:
-                    if feature["type"] == "Numeric":
-                        imputer = SimpleImputer(strategy=strategy)
-                    else:
-                        # 범주형 데이터는 항상 최빈값으로 처리
-                        imputer = SimpleImputer(strategy="most_frequent")
-                elif strategy == "knn":
-                    imputer = KNNImputer(n_neighbors=3)
+        feature = self.data_info[col]
+        missing_ratio = feature["p_missing"]            
+    
+        if missing_ratio < 0.03:
+            self.data = self.data.dropna(subset=[col])  # 결측치 비율이 3% 미만이면 행 삭제
+        else:
+            if strategy in ['mean', 'median', 'mode']:
+                if feature["type"] == "Numeric":
+                    imputer = SimpleImputer(strategy=strategy)
                 else:
-                    raise ValueError("Invalid strategy. Choose from 'mean', 'median', 'mode', 'knn'.")
-                
-                self.data[[col]] = imputer.fit_transform(self.data[[col]])
+                    # 범주형 데이터는 항상 최빈값으로 처리
+                    imputer = SimpleImputer(strategy="most_frequent")
+            elif strategy == "knn":
+                imputer = KNNImputer(n_neighbors=3)
+            else:
+                raise ValueError("Invalid strategy. Choose from 'mean', 'median', 'mode', 'knn'.")
+            
+            self.data[[col]] = imputer.fit_transform(self.data[[col]])
         
         return self.data
 
@@ -101,12 +93,6 @@ class DataPreprocessor:
         '''
         feature = self.data_info[col]
         feature_type = feature['type']
-
-        n_distinct = feature['n_distinct']
-
-        if n_distinct == 1:
-            self.data.drop(columns=[col], inplace=True)
-            return
 
         if feature_type == 'Categorical' or feature_type == 'Boolean':
             self._categorical_features(col)
@@ -134,7 +120,7 @@ class DataPreprocessor:
         return:
             None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
         '''
-        if not np.issubdtype(self.data[col].dtype, np.integer):    
+        if not np.issubdtype(self.data[col].dtype, np.integer):
             # Label Encoding 적용
             le = LabelEncoder()
             self.data[col] = le.fit_transform(self.data[col])
@@ -145,36 +131,67 @@ class DataPreprocessor:
                 }
 
 
+    # def _numeric_features(self, col):
+    #     '''
+    #     summary: 수치형 변수를 처리하는 함수. 
+    #             데이터의 왜도(skewness)에 따라 적절한 변환을 적용합니다.
+
+    #     args:
+    #         col (str): 처리할 열 이름.
+
+    #     return:
+    #         None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
+    #     '''
+    #     skewness = abs(self.data_info[col]['skewness'])
+
+    #     if skewness >= 1:
+    #         power_transformer = PowerTransformer(method='yeo-johnson')
+    #         transformed = power_transformer.fit_transform(self.data[[col]])
+
+    #         standard_scaler = StandardScaler()
+    #         self.data[[col]] = standard_scaler.fit_transform(transformed)
+
+    #         self.decoders[col] = {
+    #             "encoder" : [power_transformer, standard_scaler]
+    #         }
+    #     else:
+    #         standard_scaler = StandardScaler()
+    #         self.data[[col]] = standard_scaler.fit_transform(self.data[[col]])
+        
+    #         self.decoders[col] = {
+    #             "encoder" : standard_scaler
+    #             }
+
     def _numeric_features(self, col):
-        '''
-        summary: 수치형 변수를 처리하는 함수. 
-                데이터의 왜도(skewness)에 따라 적절한 변환을 적용합니다.
-
-        args:
-            col (str): 처리할 열 이름.
-
-        return:
-            None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
-        '''
         skewness = abs(self.data_info[col]['skewness'])
-
+        
         if skewness >= 1:
             power_transformer = PowerTransformer(method='yeo-johnson')
             transformed = power_transformer.fit_transform(self.data[[col]])
-
             standard_scaler = StandardScaler()
             self.data[[col]] = standard_scaler.fit_transform(transformed)
-
-            self.decoders[col] = {
-                "encoder" : [power_transformer, standard_scaler]
-            }
+            
+            # 이미 outlier scaler가 존재하는 경우 결합하여 저장
+            if col in self.decoders and "outliers" in self.decoders[col]:
+                outlier_scaler = self.decoders[col]["outliers"]
+                self.decoders[col] = {
+                    "encoder": [outlier_scaler, power_transformer, standard_scaler]
+                }
+            else:
+                self.decoders[col] = {
+                    "encoder": [power_transformer, standard_scaler]
+                }
         else:
             standard_scaler = StandardScaler()
             self.data[[col]] = standard_scaler.fit_transform(self.data[[col]])
-        
-            self.decoders[col] = {
-                "encoder" : standard_scaler
+            
+            if col in self.decoders and "outliers" in self.decoders[col]:
+                outlier_scaler = self.decoders[col]["outliers"]
+                self.decoders[col] = {
+                    "encoder": [outlier_scaler, standard_scaler]
                 }
+            else:
+                self.decoders[col] = {"encoder": standard_scaler}
 
 
     def _date_features(self, col):
@@ -222,80 +239,130 @@ class DataPreprocessor:
         original_columns = list(self.data.columns)
         
         for col in original_columns:
-            #self.handle_missing_values(col, strategy)
-            #self.remove_outliers(col)
+            self.handle_missing_values(col, strategy)
+            self.remove_outliers(col)
             processed_df = self.process_column(col)
             
         return processed_df
 
 
-    def decode(self, df, cols):
+    # def decode(self, df, cols):
+    #     '''
+    #     summary: 데이터 전처리 과정에서 변환된 값을 원래 값으로 복원합니다.
+
+    #     args:
+    #         pd.DataFrame (str) : 복원을 진행할 데이터프레임
+    #         cols (list) : 복원할 컬럼 리스트
+
+    #     return:
+    #         pd.DataFrame: 디코딩이 완료된 데이터프레임.
+    #     '''
+    #     print('\n ====================Decoding list확인======================== \n')
+    #     print(f'{self.decoders}')
+    #     print('\n ====================Decoding list확인======================== \n')
+
+    #     for col in cols:
+            
+    #         print(f'======== col 값 입니다 : {col}========')
+    #         if col not in self.decoders:
+    #             continue
+            
+    #         feature = self.data_info[col]
+    #         feature_type = feature['type']
+
+    #         encoder_info = self.decoders[col]
+    #         encoder = encoder_info['encoder']
+    #         outlier_scaler = encoder_info.get("outliers", None)
+
+
+    #         print(f'========================encoder 정보: {encoder_info["encoder"]}========================')
+    #         if (feature_type == 'Categorical') or (feature_type == 'Boolean'):
+    #             df[col] = encoder.inverse_transform(df[col])
+            
+    #         elif feature_type == 'Numeric':
+    #             if isinstance(encoder, list) and len(encoder) == 2:
+    #                 power_transformer, standard_scaler = encoder
+    #                 df[[col]] = standard_scaler.inverse_transform(df[[col]])
+    #                 df[[col]] = power_transformer.inverse_transform(df[[col]])
+
+    #             else:
+    #                 standard_scaler = encoder
+    #                 df[[col]] = standard_scaler.inverse_transform(df[[col]])
+                
+    #             if outlier_scaler:
+    #                 df[[col]] = outlier_scaler.inverse_transform(df[[col]])
+
+    #         elif feature_type == 'DateTime':
+    #             year_col, month_col, day_col = encoder_info['encoder']
+                
+    #             df[col] = pd.to_datetime(
+    #                 df[[year_col, month_col, day_col]].astype(str).agg('-'.join, axis=1),
+    #                 errors='coerce'
+    #             )
+    #             # 변환된 연, 월, 일 컬럼 삭제
+    #             df.drop(columns=encoder_info['encoder'], inplace=True)
+
+    #     return df
+
+
+    def decode(self, df, cols, round_decimals=2):
         '''
         summary: 데이터 전처리 과정에서 변환된 값을 원래 값으로 복원합니다.
-
-        args:
-            pd.DataFrame (str) : 복원을 진행할 데이터프레임
-
-        return:
-            pd.DataFrame: 디코딩이 완료된 데이터프레임.
         '''
+        print('\n ====================Decoding list확인======================== \n')
+        print(f'{self.decoders}')
+        print('\n ====================Decoding list확인======================== \n')
+
         for col in cols:
-            
             if col not in self.decoders:
                 continue
 
             feature = self.data_info[col]
             feature_type = feature['type']
-
             encoder_info = self.decoders[col]
-            encoder = encoder_info['encoder']
-
+            
             if (feature_type == 'Categorical') or (feature_type == 'Boolean'):
+                encoder = encoder_info['encoder']
                 df[col] = encoder.inverse_transform(df[col])
             
             elif feature_type == 'Numeric':
-                if isinstance(encoder, list) and len(encoder) == 2:
-                    power_transformer, standard_scaler = encoder
-                    df[[col]] = standard_scaler.inverse_transform(df[[col]])
-                    df[[col]] = power_transformer.inverse_transform(df[[col]])
-
+                encoder = encoder_info['encoder']
+                # Numeric 변환기 처리: 리스트 형태이면 여러 변환기가 적용된 경우
+                if isinstance(encoder, list):
+                    if len(encoder) == 3:
+                        # 저장된 순서: [outlier_scaler, power_transformer, standard_scaler]
+                        outlier_scaler, power_transformer, standard_scaler = encoder
+                        inv = standard_scaler.inverse_transform(df[[col]])
+                        inv = power_transformer.inverse_transform(inv)
+                        inv = outlier_scaler.inverse_transform(inv)
+                    elif len(encoder) == 2:
+                        # 저장된 순서: [power_transformer, standard_scaler]
+                        power_transformer, standard_scaler = encoder
+                        inv = standard_scaler.inverse_transform(df[[col]])
+                        inv = power_transformer.inverse_transform(inv)
+                    else:
+                        raise ValueError("Unexpected encoder list length for numeric feature.")
+                    df[[col]] = np.round(inv, round_decimals)
                 else:
                     standard_scaler = encoder
-                    df[[col]] = standard_scaler.inverse_transform(df[[col]])
+                    inv = standard_scaler.inverse_transform(df[[col]])
+                    df[[col]] = np.round(inv, round_decimals)
 
             elif feature_type == 'DateTime':
-                year_col, month_col, day_col = encoder_info['encoder']
-                
+                year_col, month_col, day_col = encoder_info['columns']
                 df[col] = pd.to_datetime(
                     df[[year_col, month_col, day_col]].astype(str).agg('-'.join, axis=1),
                     errors='coerce'
                 )
-
                 # 변환된 연, 월, 일 컬럼 삭제
-                df.drop(columns=encoder_info['encoder'], inplace=True)
+                df.drop(columns=encoder_info['columns'], inplace=True)
 
         return df
-    
 
-if __name__ == "__main__":
-    # CSV 파일 로드
-    df = pd.read_csv("/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv")
 
-    # 데이터 EDA 정보를 JSON에서 로드
-    data_info = OmegaConf.load('/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/ydata_profiling/user_user@xx.com_merged_base_config.json')
+def preprocessing(data, config_path):
+    config = OmegaConf.load(config_path)
+    preprocessor = DataPreprocessor(data, config)
+    preprocessed_df = preprocessor.process_features()
 
-    preprocessor = DataPreprocessor(df, data_info)
-
-    # 결측치, 이상치, 특성별 전처리 수행
-    processed_df = preprocessor.process_features(strategy="knn")
-
-    # 처리 결과 출력
-    print("===================== 인코딩 후 데이터 정보 =====================")
-    print(processed_df.head())
-    
-    cols = "제어변수 열 목록"
-    decoded_df = preprocessor.decode(processed_df, cols)
-
-    print("===================== 디코딩 후 데이터 정보 =====================")
-    print(decoded_df.head())
-    print(decoded_df.info())
+    return preprocessed_df, preprocessor

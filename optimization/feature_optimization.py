@@ -1,44 +1,52 @@
+import json
 import logging
+import os.path as osp
 import pandas as pd
-
+import numpy as np
+from datetime import datetime, timezone, timedelta
 from .optimization import optimizeing_features
 from utils.print_feature_type import compare_features
+from omegaconf import OmegaConf
+from utils.logger_config import logger
 
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO) 
+# logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO)
 
 
-def feature_optimize(task, config, test_df, model, 
-                     categorical_features, fixed_features):
-    """
-    Feature를 변경하면서 모델 최적화를 진행합니다.
-    
-    * 회귀(regression):
-      - test_df에서 무작위 5개 샘플을 추출해 각각 최적화 -> 여러 샘플 결과를 dict로 반환
-    * 분류(binary/multiclass):
-      - target_class와 다른 라벨인 데이터를 최대 10개 추출 -> 각각 최적화 -> 여러 샘플 결과를 dict로 반환
-    
+def feature_optimize(config_path, model, test_df):
+    """Feature를 변경하면서 모델 최적화를 진행합니다.
+
+    Args:
+        task (str): 모델이 수행할 task (regression/binary/multiclass)
+        config (dict): 사용자 입력이 포함된 config (json) 파일
+            - config['target_feature'] : 예측(학습) 대상 컬럼명
+            - config['optimization'] : 아래 내용을 포함
+                * 'direction': minimize or maximize
+                * 'n_trials': Optuna 최적화 반복 횟수
+                * 'target_class': 분류 문제에서 최적화할 클래스
+                * 'opt_range': 변경 가능 Feature 범위 딕셔너리
+        test_df (pd.DataFrame): 테스트(검증) 데이터
+        model (TabularPredictor or 유사 객체): 학습된 모델
+        categorical_features (list): 카테고리형 Feature 리스트
+        X_features (list): 변경 불가능한 Feature 리스트
+
     Returns:
-        dict:
-          {
-            'task': 'regression' or 'classification',
-            'results': [  # 각 샘플별 결과 리스트
-              {
-                'index': 샘플 인덱스,
-                'comparison_df': 변경 전/후 Feature 비교표,
-                'original_prediction': 최적화 전 예측,
-                'optimized_prediction': 최적화 후 예측,
-                'improvement': 개선도,
-                ...
-              },
-              ...
-            ],
-            'average_improvement': <평균 개선도> (optional),
-            'target_class': <분류의 경우에만 포함>
-          }
+        comparison_df (pd.DataFrame): 변경 전/후 Feature 비교표
+        original_prediction (float): 변경 전 모델 예측값
+        optimized_prediction_value (float): 최적화된 Feature로부터 얻은 예측값
     """
-    target = config['target_feature']            
+
+    # ===========================
+    # 1) 설정값 가져오기
+    # ===========================
+    config = OmegaConf.load(config_path)
+    
+    task = config.get("task")
+    categorical_features = config.get("categorical_features")
+    X_features = config.get("final_features")
+    target = config.get("target_feature")            # (예: 'Attrition')
+    
     opt_config = config['optimization']
     direction = opt_config['direction']         
     n_trials = opt_config['n_trials']           
@@ -58,6 +66,7 @@ def feature_optimize(task, config, test_df, model,
             sample_df = test_df.copy()
         else:
             sample_df = test_df.sample(n=5, random_state=42)
+            print(sample_df)
         
         results_list = []
 
@@ -93,7 +102,7 @@ def feature_optimize(task, config, test_df, model,
 
                 # 고정 Feature 복원
                 optimized_sample = best_features.copy()
-                for feat in fixed_features:
+                for feat in X_features:
                     if feat in original_sample:
                         optimized_sample[feat] = original_sample[feat]
 
@@ -140,10 +149,10 @@ def feature_optimize(task, config, test_df, model,
             return None
         
         # 2) 최대 30개 샘플 선정
-        if len(filtered_df) <= 30:
+        if len(filtered_df) <= 10:
             sample_df = filtered_df
         else:
-            sample_df = filtered_df.sample(n=30, random_state=42)
+            sample_df = filtered_df.sample(n=10, random_state=42)
         
         results_list = []
         
@@ -167,12 +176,13 @@ def feature_optimize(task, config, test_df, model,
                 continue
 
             # 고정 피처 복원
-            for f in fixed_features:
-                if f in original_sample:
-                    best_feat[f] = original_sample[f]
+            # for f in X_features:
+            #     if f in original_sample:
+            #         best_feat[f] = original_sample[f]
 
             # 변경 전후 feature 비교
             comparison_df = compare_features(original_sample, pd.Series(best_feat), categorical_features)
+            logger.info(comparison_df, extra={'force': True})
 
             # 최종 모델 예측
             try:
@@ -219,5 +229,23 @@ def feature_optimize(task, config, test_df, model,
             'count_changed_to_target': count_changed_to_target,
             'ratio_changed_to_target': ratio
         }
+
+        save_path = osp.dirname(config_path)
+        kst = timezone(timedelta(hours=9))
+        timestamp = datetime.now(kst).strftime("%Y%m%d_%H%M%S")
+        result_filename = f'{timestamp}_result.json'
+
+        final_config_path = osp.join(save_path, result_filename)
+        with open(final_config_path, "w", encoding="utf-8") as f:
+            json.dump(final_dict, f, ensure_ascii=False, indent=4, default=convert_to_serializable)
         
-        return final_dict
+        return final_config_path
+    
+
+# numpy.int64 → Python int 변환 함수
+def convert_to_serializable(obj):
+    if isinstance(obj, np.integer):  # numpy int 타입 확인
+        return int(obj)
+    elif isinstance(obj, np.floating):  # numpy float 타입 확인 (예방용)
+        return float(obj)
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")

@@ -3,9 +3,10 @@ numpy==1.23.5
 scikit-learn==1.1.3
 boruta==0.3
 kagglehub
+omegaconf
 
 ydata_profiling==4.12.2
-pydantic==1.10.21
+pydantic==2.10.6
 pydantic_core==2.27.2
 
 autogluon==0.8.2
