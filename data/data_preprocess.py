@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from omegaconf import OmegaConf
 from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, MinMaxScaler, StandardScaler, PowerTransformer
+from sklearn.preprocessing import RobustScaler, LabelEncoder, StandardScaler, PowerTransformer
 
 
 class DataPreprocessor:
@@ -21,7 +21,7 @@ class DataPreprocessor:
         self.data_info = config["filtered_data"]
         self.decoders = {}
 
-    def remove_outliers(self, cols):
+    def remove_outliers(self, col):
         '''
         summary: 지정된 열에서 IQR(Interquartile Range)를 기준으로 이상치를 제거합니다.
 
@@ -31,31 +31,24 @@ class DataPreprocessor:
         return: 
             pd.DataFrame: 이상치가 제거된 데이터프레임.
         '''
-        for col in cols:
-            feature = self.data_info[col]
+        feature = self.data_info[col]
 
-            if feature["type"] == "Numeric":
-                Q1 = feature["Q1"]
-                Q3 = feature["Q3"]
-                IQR = feature["iqr"]
-                kurtosis = feature["kurtosis"]
+        if feature["type"] == "Numeric":
+            kurtosis = feature["kurtosis"]
+            
+            if kurtosis > 3:
+                robust_scaler = RobustScaler()
                 
-                if kurtosis > 5:
-                    lower_bound = Q1 - 1.5 * IQR
-                    upper_bound = Q3 + 1.5 * IQR
-                    
-                    self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
-                
-                elif kurtosis < 1:
-                    lower_bound = Q1 - 3.0 * IQR
-                    upper_bound = Q3 + 3.0 * IQR
-                    
-                    self.data = self.data[(self.data[col] >= lower_bound) & (self.data[col] <= upper_bound)]
+                self.data[[col]] = robust_scaler.fit_transform(self.data[[col]])
+
+                self.decoder[col] = {
+                    "outliers" : robust_scaler
+                }
 
         return self.data
 
 
-    def handle_missing_values(self, cols, strategy="mean"):
+    def handle_missing_values(self, col, strategy="mean"):
         '''
         summary: 결측치를 열별로 처리합니다. 결측치 비율에 따라 행 삭제 또는 대체 기법을 적용합니다.
 
@@ -66,25 +59,24 @@ class DataPreprocessor:
         return: 
             pd.DataFrame: 결측치가 처리된 데이터프레임.
         '''
-        for col in cols:
-            feature = self.data_info[col]
-            missing_ratio = feature["p_missing"]            
-        
-            if missing_ratio < 0.03:
-                self.data = self.data.dropna(subset=[col])  # 결측치 비율이 3% 미만이면 행 삭제
-            else:
-                if strategy in ['mean', 'median', 'mode']:
-                    if feature["type"] == "Numeric":
-                        imputer = SimpleImputer(strategy=strategy)
-                    else:
-                        # 범주형 데이터는 항상 최빈값으로 처리
-                        imputer = SimpleImputer(strategy="most_frequent")
-                elif strategy == "knn":
-                    imputer = KNNImputer(n_neighbors=3)
+        feature = self.data_info[col]
+        missing_ratio = feature["p_missing"]            
+    
+        if missing_ratio < 0.03:
+            self.data = self.data.dropna(subset=[col])  # 결측치 비율이 3% 미만이면 행 삭제
+        else:
+            if strategy in ['mean', 'median', 'mode']:
+                if feature["type"] == "Numeric":
+                    imputer = SimpleImputer(strategy=strategy)
                 else:
-                    raise ValueError("Invalid strategy. Choose from 'mean', 'median', 'mode', 'knn'.")
-                
-                self.data[[col]] = imputer.fit_transform(self.data[[col]])
+                    # 범주형 데이터는 항상 최빈값으로 처리
+                    imputer = SimpleImputer(strategy="most_frequent")
+            elif strategy == "knn":
+                imputer = KNNImputer(n_neighbors=3)
+            else:
+                raise ValueError("Invalid strategy. Choose from 'mean', 'median', 'mode', 'knn'.")
+            
+            self.data[[col]] = imputer.fit_transform(self.data[[col]])
         
         return self.data
 
@@ -216,8 +208,8 @@ class DataPreprocessor:
         original_columns = list(self.data.columns)
         
         for col in original_columns:
-            #self.handle_missing_values(col, strategy)
-            #self.remove_outliers(col)
+            self.handle_missing_values(col, strategy)
+            self.remove_outliers(col)
             processed_df = self.process_column(col)
             
         return processed_df
@@ -229,6 +221,7 @@ class DataPreprocessor:
 
         args:
             pd.DataFrame (str) : 복원을 진행할 데이터프레임
+            cols (list) : 복원할 컬럼 리스트
 
         return:
             pd.DataFrame: 디코딩이 완료된 데이터프레임.
@@ -243,6 +236,8 @@ class DataPreprocessor:
 
             encoder_info = self.decoders[col]
             encoder = encoder_info['encoder']
+            outlier_scaler = encoder_info.get("outliers", None)
+
 
             if (feature_type == 'Categorical') or (feature_type == 'Boolean'):
                 df[col] = encoder.inverse_transform(df[col])
@@ -256,6 +251,9 @@ class DataPreprocessor:
                 else:
                     standard_scaler = encoder
                     df[[col]] = standard_scaler.inverse_transform(df[[col]])
+                
+                if outlier_scaler:
+                    df[[col]] = outlier_scaler.inverse_transform(df[[col]])
 
             elif feature_type == 'DateTime':
                 year_col, month_col, day_col = encoder_info['encoder']
@@ -264,7 +262,6 @@ class DataPreprocessor:
                     df[[year_col, month_col, day_col]].astype(str).agg('-'.join, axis=1),
                     errors='coerce'
                 )
-
                 # 변환된 연, 월, 일 컬럼 삭제
                 df.drop(columns=encoder_info['encoder'], inplace=True)
 
@@ -272,9 +269,8 @@ class DataPreprocessor:
 
 
 def preprocessing(data, config_path):
-    config = OmegaConf.load(config_path)    
+    config = OmegaConf.load(config_path)
     preprocessor = DataPreprocessor(data, config)
-
     preprocessed_df = preprocessor.process_features()
 
     return preprocessed_df, preprocessor
