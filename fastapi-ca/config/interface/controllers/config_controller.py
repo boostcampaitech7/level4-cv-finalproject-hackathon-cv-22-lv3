@@ -16,17 +16,17 @@ class ConfigResponse(BaseModel):
     path: str
 
 class CreateConfigBody(BaseModel):
-    dataset_id: str
     path: str
 
-@router.post("", status_code=201)
+@router.post("{dataset_id}", status_code=201)
 @inject
 def create_config(
     body: CreateConfigBody,
+    dataset_id: str,
     config_service: ConfigService = Depends(Provide[Container.config_service]),
 ) -> ConfigResponse:
     created_config = config_service.create_config(
-        dataset_id=body.dataset_id,
+        dataset_id=dataset_id,
         path=body.path,
     )
 

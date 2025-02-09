@@ -7,6 +7,7 @@ import { api } from "@/services/api"
 import { DraggableCard } from "@/components/DraggableCard"
 import { DropZone } from "@/components/DropZone"
 import type React from "react"
+import { ModelTrainingDialog, type ModelTrainingData } from "@/components/ModelTrainingDialog"
 
 interface Attribute {
   id: string
@@ -15,6 +16,11 @@ interface Attribute {
 }
 
 type VariableCategory = "all" | "environment" | "control" | "target"
+
+// 속성을 이름 기준으로 정렬하는 함수
+const sortAttributes = (attributes: Attribute[]): Attribute[] => {
+  return [...attributes].sort((a, b) => a.name.localeCompare(b.name))
+}
 
 export default function AttributeSettingsPage() {
   const params = useParams()
@@ -29,6 +35,7 @@ export default function AttributeSettingsPage() {
     target: [],
   })
   const [loading, setLoading] = useState(true)
+  const [isTrainingDialogOpen, setIsTrainingDialogOpen] = useState(false)
 
   useEffect(() => {
     const fetchAttributes = async () => {
@@ -53,7 +60,7 @@ export default function AttributeSettingsPage() {
                 type: typeof csvData[0][column] === "number" ? "numerical" : "categorical",
               }))
               setAttributes(newAttributes)
-              setVariableCategories((prev) => ({ ...prev, all: newAttributes }))
+              setVariableCategories((prev) => ({ ...prev, all: sortAttributes(newAttributes) }))
             }
           }
         }
@@ -84,26 +91,32 @@ export default function AttributeSettingsPage() {
         if (!attribute) return prev
 
         const newSourceCategory = prev[sourceCategory].filter((attr) => attr.id !== id)
-        const newTargetCategory = [...prev[targetCategory], attribute]
+        const newTargetCategory = sortAttributes([...prev[targetCategory], attribute])
 
         return {
           ...prev,
-          [sourceCategory]: newSourceCategory,
+          [sourceCategory]: sortAttributes(newSourceCategory),
           [targetCategory]: newTargetCategory,
         }
       })
     }
   }
 
+  const handleTrainingSubmit = (data: ModelTrainingData) => {
+    console.log("Training data:", data)
+    // TODO: 여기에 실제 모델 학습 로직 구현
+    setIsTrainingDialogOpen(false)
+  }
+
   if (loading) return <div>Loading...</div>
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200">
-      <div className="container mx-auto p-8">
+      <div className="container mx-auto py-6 px-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">속성 설정</h1>
-          <Button onClick={() => router.push(`/project/${projectId}/flow/${flowId}/data-settings`)} variant="outline">
-            데이터 설정으로 돌아가기
+          <h1 className="text-2xl font-bold text-gray-800">속성 설정</h1>
+          <Button onClick={() => setIsTrainingDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
+            모델 학습
           </Button>
         </div>
 
@@ -121,6 +134,7 @@ export default function AttributeSettingsPage() {
                       : "타겟 변수"
               }
               onDrop={(e) => handleDrop(e, category)}
+              count={variableCategories[category].length}
             >
               {variableCategories[category].map((attribute) => (
                 <DraggableCard
@@ -132,6 +146,12 @@ export default function AttributeSettingsPage() {
             </DropZone>
           ))}
         </div>
+
+        <ModelTrainingDialog
+          isOpen={isTrainingDialogOpen}
+          onClose={() => setIsTrainingDialogOpen(false)}
+          onSubmit={handleTrainingSubmit}
+        />
       </div>
     </div>
   )

@@ -17,6 +17,7 @@ export default function DataSettingsPage() {
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [loading, setLoading] = useState(true)
   const [columns, setColumns] = useState<string[]>([])
+  const [rowCount, setRowCount] = useState(0)
 
   useEffect(() => {
     const fetchDatasets = async () => {
@@ -37,6 +38,7 @@ export default function DataSettingsPage() {
             const csvData = await csvResponse.json()
             if (csvData.length > 0) {
               setColumns(Object.keys(csvData[0]))
+              setRowCount(csvData.length)
             }
           }
         }
@@ -68,7 +70,7 @@ export default function DataSettingsPage() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 min-h-[calc(100vh-12rem)]">
           <div className="md:col-span-1 h-full">
             {datasets.map((dataset) => (
-              <DataSummary key={dataset.id} rowCount={1470} columnCount={columns.length} fileSize={dataset.size} />
+              <DataSummary key={dataset.id} rowCount={rowCount} columnCount={columns.length} fileSize={dataset.size} />
             ))}
           </div>
 

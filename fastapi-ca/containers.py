@@ -10,7 +10,6 @@ from dataset.infra.repository.dataset_repo import DatasetRepository
 from config.application.config_service import ConfigService
 from config.infra.repository.config_repo import ConfigRepository
 from fastapi import BackgroundTasks
-from user.application.email_service import EmailService
 
 class Container(containers.DeclarativeContainer):
     wiring_config = containers.WiringConfiguration(
@@ -23,12 +22,10 @@ class Container(containers.DeclarativeContainer):
         ],
     )
 
-    email_service = providers.Factory(EmailService)
     user_repo = providers.Factory(UserRepository)
     user_service = providers.Factory(
         UserService,
         user_repo=user_repo,
-        email_service=email_service
     )
     project_repo = providers.Factory(ProjectRepository)
     project_service = providers.Factory(ProjectService, project_repo=project_repo)

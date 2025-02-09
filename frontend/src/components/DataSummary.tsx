@@ -27,7 +27,7 @@ export function DataSummary({ rowCount, columnCount, fileSize }: DataSummaryProp
             </div>
             <div>
               <p className="text-sm text-gray-500">전체 행</p>
-              <p className="text-lg font-semibold">{rowCount.toLocaleString()}행</p>
+              <p className="text-lg font-semibold">{(rowCount - 1).toLocaleString()}행</p>
             </div>
           </div>
 

@@ -31,12 +31,10 @@ class CreateUserBody(BaseModel):
 @inject
 def create_user(
     user: CreateUserBody,
-    background_tasks: BackgroundTasks,
     user_service: UserService = Depends(Provide[Container.user_service]),
 ) -> UserResponse:
     user_service = user_service
     created_user = user_service.create_user(
-        background_tasks=background_tasks,
         name=user.name,
         email=user.email,
         password=user.password

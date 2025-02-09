@@ -3,7 +3,6 @@ from datetime import datetime
 from user.domain.user import User
 from user.domain.repository.user_repo import IUserRepository
 from user.infra.repository.user_repo import UserRepository
-from user.application.email_service import EmailService
 from typing import Annotated
 from fastapi import BackgroundTasks, HTTPException, Depends, status
 from utils.crypto import Crypto
@@ -15,16 +14,13 @@ class UserService:
     def __init__(
         self,
         user_repo: IUserRepository,
-        email_service: EmailService,
     ):
         self.user_repo = user_repo
         self.ulid = ULID()
         self.crypto = Crypto()
-        self.email_service = email_service
 
     def create_user(
         self,
-        background_tasks: BackgroundTasks,
         name: str,
         email: str,
         password: str,
@@ -50,10 +46,6 @@ class UserService:
             updated_at=now,
         )
         self.user_repo.save(user)
-
-        # background_tasks.add_task(
-        #     self.email_service.send_email, user.email
-        # )
 
         return user
 

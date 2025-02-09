@@ -1,5 +1,6 @@
 import type React from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
+import { Hash, List } from "lucide-react"
 
 interface Attribute {
   id: string
@@ -14,15 +15,31 @@ interface DraggableCardProps {
 
 export const DraggableCard: React.FC<DraggableCardProps> = ({ attribute, onDragStart }) => {
   return (
-    <Card draggable onDragStart={onDragStart} className="mb-2 cursor-move bg-white">
-      <CardContent className="p-2">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium truncate" title={attribute.name}>
+    <Card
+      draggable
+      onDragStart={onDragStart}
+      className="group cursor-move bg-white hover:bg-gray-50 transition-colors border border-gray-200"
+    >
+      <div className="px-3 py-2 flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate" title={attribute.name}>
             {attribute.name}
-          </span>
-          <span className="text-xs text-gray-500">{attribute.type === "numerical" ? "수치" : "범주"}</span>
+          </p>
         </div>
-      </CardContent>
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-50 group-hover:bg-white">
+          {attribute.type === "numerical" ? (
+            <>
+              <Hash className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+              <span className="text-xs text-gray-600 font-medium">수치</span>
+            </>
+          ) : (
+            <>
+              <List className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+              <span className="text-xs text-gray-600 font-medium">범주</span>
+            </>
+          )}
+        </div>
+      </div>
     </Card>
   )
 }
