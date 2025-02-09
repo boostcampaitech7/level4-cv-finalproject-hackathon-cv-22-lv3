@@ -1,4 +1,3 @@
-# logger_config.py
 import sys
 import os
 import logging
@@ -16,7 +15,10 @@ logger.setLevel(logging.INFO)
 logger.propagate = False  # ✅ root logger로 로그 전파 방지 (중복 출력 해결)
 
 # 로그 포맷 지정
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(message)s", 
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 # 파일 핸들러 추가 (로그 파일 저장, append 모드)
 file_handler = logging.FileHandler(LOG_FILE, mode="a", encoding="utf-8")
@@ -45,6 +47,9 @@ class TeeLogger:
         self.terminal.flush()
         self.log.flush()
 
-sys.stdout = TeeLogger(LOG_FILE)  # print()도 로그 파일에 저장
+# stdout, stderr 모두 리디렉션
+tee = TeeLogger(LOG_FILE)
+sys.stdout = tee
+sys.stderr = tee
 
 # ✅ 다른 파일에서 `from logger_config import logger` 하면 사용 가능

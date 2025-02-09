@@ -9,3 +9,4 @@ ydata_profiling
 test_optim
 logs
 *.log
+test_env
