@@ -131,36 +131,67 @@ class DataPreprocessor:
                 }
 
 
+    # def _numeric_features(self, col):
+    #     '''
+    #     summary: 수치형 변수를 처리하는 함수. 
+    #             데이터의 왜도(skewness)에 따라 적절한 변환을 적용합니다.
+
+    #     args:
+    #         col (str): 처리할 열 이름.
+
+    #     return:
+    #         None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
+    #     '''
+    #     skewness = abs(self.data_info[col]['skewness'])
+
+    #     if skewness >= 1:
+    #         power_transformer = PowerTransformer(method='yeo-johnson')
+    #         transformed = power_transformer.fit_transform(self.data[[col]])
+
+    #         standard_scaler = StandardScaler()
+    #         self.data[[col]] = standard_scaler.fit_transform(transformed)
+
+    #         self.decoders[col] = {
+    #             "encoder" : [power_transformer, standard_scaler]
+    #         }
+    #     else:
+    #         standard_scaler = StandardScaler()
+    #         self.data[[col]] = standard_scaler.fit_transform(self.data[[col]])
+        
+    #         self.decoders[col] = {
+    #             "encoder" : standard_scaler
+    #             }
+
     def _numeric_features(self, col):
-        '''
-        summary: 수치형 변수를 처리하는 함수. 
-                데이터의 왜도(skewness)에 따라 적절한 변환을 적용합니다.
-
-        args:
-            col (str): 처리할 열 이름.
-
-        return:
-            None: 데이터프레임을 직접 수정하며, 인코더 정보를 self.decoders에 저장합니다.
-        '''
         skewness = abs(self.data_info[col]['skewness'])
-
+        
         if skewness >= 1:
             power_transformer = PowerTransformer(method='yeo-johnson')
             transformed = power_transformer.fit_transform(self.data[[col]])
-
             standard_scaler = StandardScaler()
             self.data[[col]] = standard_scaler.fit_transform(transformed)
-
-            self.decoders[col] = {
-                "encoder" : [power_transformer, standard_scaler]
-            }
+            
+            # 이미 outlier scaler가 존재하는 경우 결합하여 저장
+            if col in self.decoders and "outliers" in self.decoders[col]:
+                outlier_scaler = self.decoders[col]["outliers"]
+                self.decoders[col] = {
+                    "encoder": [outlier_scaler, power_transformer, standard_scaler]
+                }
+            else:
+                self.decoders[col] = {
+                    "encoder": [power_transformer, standard_scaler]
+                }
         else:
             standard_scaler = StandardScaler()
             self.data[[col]] = standard_scaler.fit_transform(self.data[[col]])
-        
-            self.decoders[col] = {
-                "encoder" : standard_scaler
+            
+            if col in self.decoders and "outliers" in self.decoders[col]:
+                outlier_scaler = self.decoders[col]["outliers"]
+                self.decoders[col] = {
+                    "encoder": [outlier_scaler, standard_scaler]
                 }
+            else:
+                self.decoders[col] = {"encoder": standard_scaler}
 
 
     def _date_features(self, col):
@@ -215,59 +246,116 @@ class DataPreprocessor:
         return processed_df
 
 
-    def decode(self, df, cols):
+    # def decode(self, df, cols):
+    #     '''
+    #     summary: 데이터 전처리 과정에서 변환된 값을 원래 값으로 복원합니다.
+
+    #     args:
+    #         pd.DataFrame (str) : 복원을 진행할 데이터프레임
+    #         cols (list) : 복원할 컬럼 리스트
+
+    #     return:
+    #         pd.DataFrame: 디코딩이 완료된 데이터프레임.
+    #     '''
+    #     print('\n ====================Decoding list확인======================== \n')
+    #     print(f'{self.decoders}')
+    #     print('\n ====================Decoding list확인======================== \n')
+
+    #     for col in cols:
+            
+    #         print(f'======== col 값 입니다 : {col}========')
+    #         if col not in self.decoders:
+    #             continue
+            
+    #         feature = self.data_info[col]
+    #         feature_type = feature['type']
+
+    #         encoder_info = self.decoders[col]
+    #         encoder = encoder_info['encoder']
+    #         outlier_scaler = encoder_info.get("outliers", None)
+
+
+    #         print(f'========================encoder 정보: {encoder_info["encoder"]}========================')
+    #         if (feature_type == 'Categorical') or (feature_type == 'Boolean'):
+    #             df[col] = encoder.inverse_transform(df[col])
+            
+    #         elif feature_type == 'Numeric':
+    #             if isinstance(encoder, list) and len(encoder) == 2:
+    #                 power_transformer, standard_scaler = encoder
+    #                 df[[col]] = standard_scaler.inverse_transform(df[[col]])
+    #                 df[[col]] = power_transformer.inverse_transform(df[[col]])
+
+    #             else:
+    #                 standard_scaler = encoder
+    #                 df[[col]] = standard_scaler.inverse_transform(df[[col]])
+                
+    #             if outlier_scaler:
+    #                 df[[col]] = outlier_scaler.inverse_transform(df[[col]])
+
+    #         elif feature_type == 'DateTime':
+    #             year_col, month_col, day_col = encoder_info['encoder']
+                
+    #             df[col] = pd.to_datetime(
+    #                 df[[year_col, month_col, day_col]].astype(str).agg('-'.join, axis=1),
+    #                 errors='coerce'
+    #             )
+    #             # 변환된 연, 월, 일 컬럼 삭제
+    #             df.drop(columns=encoder_info['encoder'], inplace=True)
+
+    #     return df
+
+
+    def decode(self, df, cols, round_decimals=2):
         '''
         summary: 데이터 전처리 과정에서 변환된 값을 원래 값으로 복원합니다.
-
-        args:
-            pd.DataFrame (str) : 복원을 진행할 데이터프레임
-            cols (list) : 복원할 컬럼 리스트
-
-        return:
-            pd.DataFrame: 디코딩이 완료된 데이터프레임.
         '''
         print('\n ====================Decoding list확인======================== \n')
         print(f'{self.decoders}')
         print('\n ====================Decoding list확인======================== \n')
 
         for col in cols:
-            
             if col not in self.decoders:
                 continue
 
             feature = self.data_info[col]
             feature_type = feature['type']
-
             encoder_info = self.decoders[col]
-            encoder = encoder_info['encoder']
-            outlier_scaler = encoder_info.get("outliers", None)
-
-
+            
             if (feature_type == 'Categorical') or (feature_type == 'Boolean'):
+                encoder = encoder_info['encoder']
                 df[col] = encoder.inverse_transform(df[col])
             
             elif feature_type == 'Numeric':
-                if isinstance(encoder, list) and len(encoder) == 2:
-                    power_transformer, standard_scaler = encoder
-                    df[[col]] = standard_scaler.inverse_transform(df[[col]])
-                    df[[col]] = power_transformer.inverse_transform(df[[col]])
-
+                encoder = encoder_info['encoder']
+                # Numeric 변환기 처리: 리스트 형태이면 여러 변환기가 적용된 경우
+                if isinstance(encoder, list):
+                    if len(encoder) == 3:
+                        # 저장된 순서: [outlier_scaler, power_transformer, standard_scaler]
+                        outlier_scaler, power_transformer, standard_scaler = encoder
+                        inv = standard_scaler.inverse_transform(df[[col]])
+                        inv = power_transformer.inverse_transform(inv)
+                        inv = outlier_scaler.inverse_transform(inv)
+                    elif len(encoder) == 2:
+                        # 저장된 순서: [power_transformer, standard_scaler]
+                        power_transformer, standard_scaler = encoder
+                        inv = standard_scaler.inverse_transform(df[[col]])
+                        inv = power_transformer.inverse_transform(inv)
+                    else:
+                        raise ValueError("Unexpected encoder list length for numeric feature.")
+                    df[[col]] = np.round(inv, round_decimals)
                 else:
                     standard_scaler = encoder
-                    df[[col]] = standard_scaler.inverse_transform(df[[col]])
-                
-                if outlier_scaler:
-                    df[[col]] = outlier_scaler.inverse_transform(df[[col]])
+                    inv = standard_scaler.inverse_transform(df[[col]])
+                    df[[col]] = np.round(inv, round_decimals)
 
             elif feature_type == 'DateTime':
-                year_col, month_col, day_col = encoder_info['encoder']
-                
+                year_col, month_col, day_col = encoder_info['columns']
                 df[col] = pd.to_datetime(
                     df[[year_col, month_col, day_col]].astype(str).agg('-'.join, axis=1),
                     errors='coerce'
                 )
                 # 변환된 연, 월, 일 컬럼 삭제
-                df.drop(columns=encoder_info['encoder'], inplace=True)
+                df.drop(columns=encoder_info['columns'], inplace=True)
 
         return df
 

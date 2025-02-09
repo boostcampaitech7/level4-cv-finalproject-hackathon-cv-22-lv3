@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
 from autogluon.tabular import TabularPredictor
 from imblearn.over_sampling import SMOTE  # SMOTE 라이브러리 임포트
+from model.regression_metrics import adjusted_r2_score
 
 def automl_module(data, task, target, preset, time_to_train, config):
     """
@@ -98,14 +99,17 @@ def automl_module(data, task, target, preset, time_to_train, config):
 
     if task == 'regression':
         mae = mean_absolute_error(test_df[target], y_pred)
-        r2 = r2_score(test_df[target], y_pred)
+        # test_df에서 target 컬럼을 제외한 X 데이터를 구함
+        X_test = test_df.drop(columns=[target])
+        # Advanced (Adjusted) R^2 계산
+        adv_r2 = adjusted_r2_score(test_df[target], y_pred, X_test)
         logger.info("AutoGluon Regressor 결과:")
         logger.info(f" - MAE : {mae:.4f}")
-        logger.info(f" - R^2 : {r2:.4f}")
+        logger.info(f" - Advanced R^2 : {adv_r2:.4f}")
 
         config["model_result"] = {
             "MAE": round(mae, 4),
-            "R2": round(r2, 4)
+            "Advanced_R2": round(adv_r2, 4)
         }
 
     elif task in ['binary', 'multiclass']:

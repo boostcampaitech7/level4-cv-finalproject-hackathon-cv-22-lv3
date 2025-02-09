@@ -38,15 +38,16 @@ def process_2(model_config_path, original_df):
     config_updates = {
         "target_feature": "Price",
         "controllable_feature": [
-            "Distance",
-            "BuildingArea",
+            "Longtitude",
+            "Lattitude",
+            "BuildingArea"
         ],
         "necessary_feature": [
-            "Car"
+
         ],
-        "limited_feature" : 6,
+        "limited_feature" : 4,
         "model" : {
-            "time_to_train": 100,
+            "time_to_train": 30,
             "model_quality": "best"}
 
     }
@@ -107,14 +108,18 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
             "n_trials": 10,
             "target_class": 0,
             "opt_range": {
-                "Distance": [
+                "Longtitude": [
                     20,
                     20
                     ],
-                "BuildingArea": [
+                "Lattitude" : [
                     20,
                     20
-                    ],
+                ],
+                "BuildingArea" : [
+                    20,
+                    20
+                ]
                     } 
         }
     }
