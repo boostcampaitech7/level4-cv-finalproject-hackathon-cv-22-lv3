@@ -238,7 +238,7 @@ def feature_optimize(config_path, model, test_df):
         with open(final_config_path, "w", encoding="utf-8") as f:
             json.dump(final_dict, f, ensure_ascii=False, indent=4, default=convert_to_serializable)
         
-        return final_dict
+        return final_config_path
     
 
 # numpy.int64 → Python int 변환 함수
