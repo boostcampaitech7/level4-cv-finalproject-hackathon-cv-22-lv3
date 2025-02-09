@@ -31,7 +31,7 @@ def user_feature(data, model_config_path):
     # 모델 학습 결과
     model_result = config["model_result"]
     # 모델 리더보드
-    top_models = config["Top_models"]
+    top_models = config["top_models"]
     # 피처 중요도
     feature_importance = config["feature_importance"]
 
