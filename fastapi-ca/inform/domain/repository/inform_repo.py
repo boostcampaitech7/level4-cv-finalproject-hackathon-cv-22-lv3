@@ -1,17 +1,17 @@
 from abc import ABCMeta, abstractmethod
-from config.domain.config import Config
+from inform.domain.inform import Inform
 
-class IConfigRepository(metaclass=ABCMeta):
+class IInformRepository(metaclass=ABCMeta):
     @abstractmethod
-    def find_by_id(self, id: str) -> Config:
+    def find_by_id(self, id: str) -> Inform:
         raise NotImplementedError
 
     @abstractmethod
-    def find_by_dataset(self, dataset_id: str) -> Config:
+    def find_by_dataset(self, dataset_id: str) -> Inform:
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, dataset_id: str, config: Config) -> Config:
+    def save(self, dataset_id: str, inform: Inform) -> Inform:
         raise NotImplementedError
 
     @abstractmethod

@@ -11,16 +11,24 @@ interface ModelTrainingDialogProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: ModelTrainingData) => void
+  maxAttributeCount: number
 }
 
 export interface ModelTrainingData {
   maxAttributes: number
   trainingTime: number
-  modelQuality: string
+  modelQuality: number
 }
 
-export function ModelTrainingDialog({ isOpen, onClose, onSubmit }: ModelTrainingDialogProps) {
-  const [maxAttributes, setMaxAttributes] = React.useState("")
+const modelQualityMap = {
+  best: 0,
+  high: 1,
+  good: 2,
+  medium: 3,
+}
+
+export function ModelTrainingDialog({ isOpen, onClose, onSubmit, maxAttributeCount }: ModelTrainingDialogProps) {
+  const [maxAttributes, setMaxAttributes] = React.useState(maxAttributeCount.toString())
   const [trainingTime, setTrainingTime] = React.useState("")
   const [modelQuality, setModelQuality] = React.useState("high")
 
@@ -29,8 +37,9 @@ export function ModelTrainingDialog({ isOpen, onClose, onSubmit }: ModelTraining
     onSubmit({
       maxAttributes: Number(maxAttributes),
       trainingTime: Number(trainingTime),
-      modelQuality: modelQuality,
+      modelQuality: modelQualityMap[modelQuality as keyof typeof modelQualityMap],
     })
+    onClose()
   }
 
   return (
@@ -50,11 +59,12 @@ export function ModelTrainingDialog({ isOpen, onClose, onSubmit }: ModelTraining
                 onChange={(e) => setMaxAttributes(e.target.value)}
                 className="col-span-3"
                 min={1}
+                max={maxAttributeCount}
                 required
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="trainingTime">학습 시간</Label>
+              <Label htmlFor="trainingTime">학습 시간 (초)</Label>
               <Input
                 id="trainingTime"
                 type="number"

@@ -18,6 +18,8 @@ export default function DataSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [columns, setColumns] = useState<string[]>([])
   const [rowCount, setRowCount] = useState(0)
+  // 제거
+  // const [isCreatingInform, setIsCreatingInform] = useState(false)
 
   useEffect(() => {
     const fetchDatasets = async () => {
@@ -52,6 +54,27 @@ export default function DataSettingsPage() {
     fetchDatasets()
   }, [flowId])
 
+  // handleCreateInform 함수 전체 제거
+  // const handleCreateInform = async () => {
+  //   if (datasets.length === 0) {
+  //     toast.error("데이터셋이 없습니다.")
+  //     return
+  //   }
+
+  //   setIsCreatingInform(true)
+  //   try {
+  //     const result = await api.createInform(datasets[0].id)
+  //     toast.success("Inform이 성공적으로 생성되었습니다.")
+  //     console.log("Created Inform:", result)
+  //     // TODO: 생성된 Inform 정보를 활용하여 추가 작업 수행
+  //   } catch (error) {
+  //     console.error("Failed to create Inform:", error)
+  //     toast.error("Inform 생성에 실패했습니다.")
+  //   } finally {
+  //     setIsCreatingInform(false)
+  //   }
+  // }
+
   if (loading) return <div>Loading...</div>
 
   return (
@@ -59,12 +82,22 @@ export default function DataSettingsPage() {
       <div className="container mx-auto p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">데이터 설정</h1>
-          <Button
-            onClick={() => router.push(`/project/${projectId}/flow/${flowId}/attribute-settings`)}
-            variant="outline"
-          >
-            속성 설정
-          </Button>
+          <div className="space-x-4">
+            {/* 다음 버튼을 제거 */}
+            {/* <Button
+              onClick={handleCreateInform}
+              disabled={isCreatingInform}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isCreatingInform ? "생성 중..." : "Inform 생성"}
+            </Button> */}
+            <Button
+              onClick={() => router.push(`/project/${projectId}/flow/${flowId}/attribute-settings`)}
+              variant="outline"
+            >
+              속성 설정
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 min-h-[calc(100vh-12rem)]">
