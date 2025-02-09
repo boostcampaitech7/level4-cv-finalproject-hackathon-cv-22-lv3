@@ -66,6 +66,7 @@ def feature_optimize(config_path, model, test_df):
             sample_df = test_df.copy()
         else:
             sample_df = test_df.sample(n=5, random_state=42)
+            print(sample_df)
         
         results_list = []
 
@@ -148,10 +149,10 @@ def feature_optimize(config_path, model, test_df):
             return None
         
         # 2) 최대 30개 샘플 선정
-        if len(filtered_df) <= 30:
+        if len(filtered_df) <= 10:
             sample_df = filtered_df
         else:
-            sample_df = filtered_df.sample(n=30, random_state=42)
+            sample_df = filtered_df.sample(n=10, random_state=42)
         
         results_list = []
         

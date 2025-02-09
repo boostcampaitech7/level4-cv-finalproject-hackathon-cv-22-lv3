@@ -41,7 +41,7 @@ class DataPreprocessor:
                 
                 self.data[[col]] = robust_scaler.fit_transform(self.data[[col]])
 
-                self.decoder[col] = {
+                self.decoders[col] = {
                     "outliers" : robust_scaler
                 }
 
@@ -226,6 +226,10 @@ class DataPreprocessor:
         return:
             pd.DataFrame: 디코딩이 완료된 데이터프레임.
         '''
+        print('\n ====================Decoding list확인======================== \n')
+        print(f'{self.decoders}')
+        print('\n ====================Decoding list확인======================== \n')
+
         for col in cols:
             
             if col not in self.decoders:

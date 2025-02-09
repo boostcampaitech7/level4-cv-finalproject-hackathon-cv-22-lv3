@@ -36,23 +36,37 @@ def process_2(model_config_path, original_df):
     logger.info("📊 사용자 설정을 업데이트합니다...")
     # 사용자한테 받은 dict_type을 통해 모델 config 업데이트
     config_updates = {
-        "target_feature": "Attrition",
+        "target_feature": "Price",
         "controllable_feature": [
-            "MonthlyIncome",
-            "WorkLifeBalance"
+            "Distance",
+            "BuildingArea",
         ],
         "necessary_feature": [
-            "Age",
-            "Education",
-            "DistanceFromHome",
-            "OverTime"
+            "Car"
         ],
-        "limited_feature" : 10,
+        "limited_feature" : 6,
         "model" : {
             "time_to_train": 100,
-            "model_quality": "best"
+            "model_quality": "best"}
 
     }
+
+    # config_updates = {
+    # "target_feature": "Attrition",
+    # "controllable_feature": [
+    #     "MonthlyIncome",
+    #     "WorkLifeBalance"
+    # ],
+    # "necessary_feature": [
+    #     "Age",
+    #     "Education",
+    #     "DistanceFromHome",
+    #     "OverTime"
+    # ],
+    # "limited_feature" : 10,
+    # "model" : {
+    #     "time_to_train": 100,
+    #     "model_quality": "best"}}
     
     # 사용자에게 받은 것을 통해 업데이트
     model_config_path = update_config(model_config_path, config_updates)
@@ -90,24 +104,46 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
     config_updates = {
         "optimization": {
             "direction": "maximize",
-            "n_trials": 50,
+            "n_trials": 10,
             "target_class": 0,
             "opt_range": {
-                "MonthlyIncome": [
+                "Distance": [
                     20,
                     20
                     ],
-                "WorkLifeBalance": [
-                    0,
-                    3
-                    ]} 
+                "BuildingArea": [
+                    20,
+                    20
+                    ],
+                    } 
         }
     }
+
+#     config_updates = {
+#     "optimization": {
+#         "direction": "maximize",
+#         "n_trials": 50,
+#         "target_class": 0,
+#         "opt_range": {
+#             "MonthlyIncome": [
+#                 20,
+#                 20
+#                 ],
+#             "WorkLifeBalance": [
+#                 0,
+#                 3
+#                 ]} 
+#     }
+# }
     
     model_config_path = update_config(model_config_path, config_updates)
     
     logger.info("📉 데이터 디코딩 진행 중...")
     preprocessed_df = preprocessor.decode(preprocessed_df, controllable_feature)
+    print('\n\n')
+    print('------------------Decoding-----------------')
+    print(f'{preprocessed_df}')
+    print('\n\n')
 
     # 최적화를 진행한다.
     logger.info("⚡ 최적화 알고리즘 실행...")
@@ -119,7 +155,7 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/melb_data.csv'
 
     logger.info("🚀 AutoML 파이프라인 실행 시작!")    
     model_config_path, user_config_path, original_df = process_1(data_path)
