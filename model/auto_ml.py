@@ -1,7 +1,6 @@
 import pandas as pd
 from utils.logger_config import logger
 from omegaconf import OmegaConf
-import logging
 import json
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, accuracy_score, f1_score
@@ -143,7 +142,7 @@ def automl_module(data, task, target, preset, time_to_train, config):
     logger.info('==============================================================\n')
     logger.info('==============================================================\n')
     config["feature_importance"] = feature_importance.to_dict()
-    
+
     evaluation = predictor.evaluate(test_df)
     logger.info(f'Evaluation Results:\n{evaluation}')
     logger.info('==============================================================\n')
@@ -171,7 +170,7 @@ def train_model(data, config_path):
     selected_quality = model_config['model_quality']
     time_to_train = model_config['time_to_train']
     try:
-        model, test_df = automl_module(data, task, target, selected_quality, time_to_train, config)
+        model, test_df, config = automl_module(data, task, target, selected_quality, time_to_train, config)
         
         with open(config_path, 'w', encoding='utf-8') as f:
             json.dump(OmegaConf.to_container(config, resolve=True), f, indent=4, ensure_ascii=False)

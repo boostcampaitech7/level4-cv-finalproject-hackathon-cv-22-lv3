@@ -47,7 +47,7 @@ def process_2(model_config_path, original_df):
         ],
         "limited_feature" : 6,
         "model" : {
-            "time_to_train": 100,
+            "time_to_train": 30,
             "model_quality": 0
         }
     }
@@ -72,16 +72,6 @@ def process_2(model_config_path, original_df):
 
     logger.info("✅ 모델 학습 완료")
     
-    # user_config 만들어서 보내주기
-    '''
-    - 제어 변수들의 범위 → Categorical, Numeric Type 다르게 설정
-    - 타겟 변수 범위 → Categorical, Numeric
-    - 회귀, 분류, Multiclass 등 task : {}, 학습 진행 전에도 가능
-
-    - 학습 결과 → train_result : {}, 학습 진행 후 → 확정
-    - 특성 중요도 → feature_importance : {}, 학습 진행 전에도 가능, 피쳐, 상관계수 값
-    - TOP10 모델의 정보 → top_models : {} → 학습 진행 후 → 확정, 모델 이름, 성능
-    '''
     update_config_info = user_feature(df, model_config_path)
     user_config_path = update_config(model_config_path, update_config_info, user=True)
 
@@ -127,7 +117,7 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/data/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    data_path = '/data/ephemeral/home/uploads/WA_Fn-UseC_-HR-Employee-Attrition.csv'
     logger.info("🚀 AutoML 파이프라인 실행 시작!")    
     model_config_path, user_config_path, original_df = process_1(data_path)
     
