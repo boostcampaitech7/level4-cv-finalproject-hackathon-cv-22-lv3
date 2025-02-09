@@ -109,10 +109,10 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
 
     # 최적화를 진행한다.
     logger.info("⚡ 최적화 알고리즘 실행...")
-    final_dict = feature_optimize(model_config_path, model, preprocessed_df)
+    final_config_path = feature_optimize(model_config_path, model, preprocessed_df)
     logger.info("✅ Feature Optimization 완료!")
     
-    return final_dict
+    return final_config_path
 
 ## 현준 결과 보내기
     
@@ -123,5 +123,5 @@ if __name__ == '__main__':
     
     model_config_path, model, test_df, preprocessed_df, preprocessor = process_2(model_config_path, original_df)
     
-    final_dict = process_3(model_config_path, model, test_df, preprocessed_df, preprocessor)
+    final_config_path = process_3(model_config_path, model, test_df, preprocessed_df, preprocessor)
     logger.info("🏁 전체 프로세스 완료!")
