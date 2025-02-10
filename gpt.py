@@ -1,19 +1,23 @@
 import os
 import json
 import openai
-from collections import defaultdict
-from optimization.feature_optimization import convert_to_serializable
 
-def gpt_solution(final_dict, model_config_path):
+from omegaconf import OmegaConf
+from collections import defaultdict
+from config.update_config import update_config
+
+def gpt_solution(final_dict, model_config_path, user_config_path):
     """
     전달된 final_dict의 내용을 확인하고 적절히 값을 출력 및 분석한 후,
     controllable feature들을 조정하여 target feature를 원하는 방향으로 변경할 수 있는
     구체적 실행 전략에 대해 GPT 솔루션(response.choices[0].message.content)을 포함한 JSON을 반환합니다.
     """
-    # final_dict가 파일 경로인 경우 로드
-    if isinstance(final_dict, str) and os.path.exists(final_dict):
-        with open(final_dict, 'r', encoding='utf-8') as f:
-            final_dict = json.load(f)
+
+    
+    model_config = OmegaConf.load(model_config_path)
+    user_config = OmegaConf.load(user_config_path)
+    task_type = user_config.get("task")
+    
             
     # task 타입 확인
     task_type = final_dict.get('task', None)
@@ -25,9 +29,7 @@ def gpt_solution(final_dict, model_config_path):
 
     # model_config_path에서 controllable_feature 리스트 로드
     try:
-        with open(model_config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-        controllable_features = config.get("controllable_feature", [])
+        controllable_features = model_config.get("controllable_feature", [])
         print("Controllable features:", controllable_features)
     except Exception as e:
         print(f"[ERROR] Failed to load config from {model_config_path}: {e}")
@@ -263,7 +265,10 @@ def gpt_solution(final_dict, model_config_path):
             "solution": gpt_response_text
         }
 
-        return json.dumps(output_data, indent=4, ensure_ascii=False)
+
+        # JSON 문자열로 반환 (indent 및 ensure_ascii 옵션 사용)
+        update_config(user_config_path, output_data)
+        return user_config_path
 
     else:
         print("[ERROR] 알 수 없는 task입니다.")

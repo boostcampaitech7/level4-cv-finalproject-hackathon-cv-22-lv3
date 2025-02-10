@@ -54,33 +54,6 @@ def automl_module(data, task, target, preset, time_to_train, config):
             # SMOTE 실패시 원본 데이터를 사용하도록 함
             pass
 
-    # # (옵션 2) 클래스 가중치 조정: 원래 학습 데이터의 클래스 비율을 기반으로 가중치를 산출합니다.
-    # hyperparameters = {}
-    # if task == 'binary':
-    #     counts = train_df[target].value_counts()
-    #     if len(counts) == 2:
-    #         majority_class = counts.idxmax()
-    #         minority_class = counts.idxmin()
-    #         # LightGBM과 XGBoost에서 scale_pos_weight는 다수 클래스 대비 소수 클래스의 비율
-    #         scale_pos_weight = counts[majority_class] / counts[minority_class]
-    #         logger.info(f"계산된 scale_pos_weight: {scale_pos_weight:.2f}")
-
-    #         hyperparameters = {
-    #             'GBM': {'scale_pos_weight': scale_pos_weight},
-    #             'XGB': {'scale_pos_weight': scale_pos_weight},
-    #             # 필요 시 CatBoost 등 다른 모델도 설정 가능
-    #         }
-    #     else:
-    #         logger.info("이진 분류가 아닌 경우 클래스 가중치 조정은 생략합니다.")
-    
-    # # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    # # Bayesian Optimization을 사용하기 위한 설정
-    # hyperparameter_tune_kwargs = {
-    #     'num_trials': 10,        # 시도 횟수 (증가 시 탐색 범위가 넓어지지만, 시간도 오래 걸림)
-    #     'scheduler': 'local',    # 단일 머신에서 수행
-    #     'searcher': 'auto',  # Bayesian Optimization 적용
-    # }
-    # # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
     # 모델 학습
     predictor = TabularPredictor(
@@ -117,6 +90,7 @@ def automl_module(data, task, target, preset, time_to_train, config):
         # 정확도와 F1 스코어를 Python 기본 float 타입으로 변환
         accuracy = float(accuracy_score(test_df[target], y_pred))
         f1 = float(f1_score(test_df[target], y_pred, average='weighted'))
+
 
         logger.info("AutoGluon Classifier 결과:")
         logger.info(f" - Accuracy : {accuracy:.4f}")
