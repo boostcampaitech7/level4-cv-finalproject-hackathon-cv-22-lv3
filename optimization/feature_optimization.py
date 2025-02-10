@@ -8,13 +8,13 @@ from .optimization import optimizeing_features
 from utils.print_feature_type import compare_features
 from omegaconf import OmegaConf
 from utils.logger_config import logger
-
+from config.update_config import update_config
 
 # logger = logging.getLogger(__name__)
 # logging.basicConfig(level=logging.INFO)
 
 
-def feature_optimize(config_path, model, test_df):
+def feature_optimize(model_config_path, user_config_path, model, test_df):
     """Feature를 변경하면서 모델 최적화를 진행합니다.
 
     Args:
@@ -40,7 +40,7 @@ def feature_optimize(config_path, model, test_df):
     # ===========================
     # 1) 설정값 가져오기
     # ===========================
-    config = OmegaConf.load(config_path)
+    config = OmegaConf.load(model_config_path)
     
     task = config.get("task")
     categorical_features = config.get("categorical_features")
@@ -113,10 +113,10 @@ def feature_optimize(config_path, model, test_df):
                 results_list.append({
                     'index': idx,
                     'comparison_df': comparison_df,
-                    'original_prediction': orig_pred,
-                    'optimized_prediction': best_pred,
-                    'improvement': improvement,
-                    'final_prediction': final_prediction
+                    'original_prediction': float(orig_pred),
+                    'optimized_prediction': float(best_pred),
+                    'improvement': float(improvement),
+                    'final_prediction': float(final_prediction)
                 })
 
             except Exception as e:
@@ -134,8 +134,11 @@ def feature_optimize(config_path, model, test_df):
         final_dict = {
             'task': 'regression',
             'results': results_list,
-            'average_improvement': avg_improvement
+            'average_improvement': float(avg_improvement)
         }
+        
+        update_config(user_config_path, final_dict)
+        
         return final_dict
 
 
@@ -204,11 +207,11 @@ def feature_optimize(config_path, model, test_df):
                 'index': idx,
                 'original_sample': original_sample.to_dict(),
                 'optimized_features': best_feat,
-                'original_prediction': orig_pred,
-                'best_prediction': best_pred,
-                'original_pred_class': orig_pred_class,
-                'optimized_pred_class': new_pred_class,
-                'improvement': improvement,
+                'original_prediction': float(orig_pred),
+                'best_prediction': float(best_pred),
+                'original_pred_class': int(orig_pred_class),
+                'optimized_pred_class': int(new_pred_class),
+                'improvement': float(improvement),
                 'comparison': comparison_df
             })
 
@@ -230,16 +233,9 @@ def feature_optimize(config_path, model, test_df):
             'ratio_changed_to_target': ratio
         }
 
-        save_path = osp.dirname(config_path)
-        kst = timezone(timedelta(hours=9))
-        timestamp = datetime.now(kst).strftime("%Y%m%d_%H%M%S")
-        result_filename = f'{timestamp}_result.json'
-
-        final_config_path = osp.join(save_path, result_filename)
-        with open(final_config_path, "w", encoding="utf-8") as f:
-            json.dump(final_dict, f, ensure_ascii=False, indent=4, default=convert_to_serializable)
+        update_config(user_config_path, final_dict)
         
-        return final_config_path
+        return final_dict
     
 
 # numpy.int64 → Python int 변환 함수
