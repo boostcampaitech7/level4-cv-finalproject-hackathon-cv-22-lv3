@@ -48,7 +48,8 @@ def process_2(model_config_path, user_config_path, original_df):
     #     "limited_feature" : 4,
     #     "model" : {
     #         "time_to_train": 30,
-    #         "model_quality": "best"}}
+    #         "model_quality": "best"}
+    # }
 
     config_updates = {
     "target_feature": "Attrition",
@@ -100,6 +101,8 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
     model_config = OmegaConf.load(model_config_path)
     controllable_feature = model_config["controllable_feature"]
     
+    
+    ## 02조
     # config_updates = {
     #     "optimization": {
     #         "direction": "maximize",
@@ -122,22 +125,45 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
     #     }
     # }
 
+    # 06조
     config_updates = {
-    "optimization": {
-        "direction": "maximize",
-        "n_trials": 50,
-        "target_class": 0,
-        "opt_range": {
-            "MonthlyIncome": [
-                20,
-                20
-                ],
-            "WorkLifeBalance": [
-                0,
-                3
-                ]} 
+        "optimization": {
+            "direction": "maximize",
+            "n_trials": 15,
+            "target_class": 0,
+            "opt_range": {
+                "MonthlyIncome": [
+                    20,
+                    20
+                    ],
+                "WorkLifeBalance": [
+                    0,
+                    3
+                    ]} 
+        }
     }
-}
+
+
+    
+#     #22조
+#     config_updates = {
+#     "optimization": {
+#         "direction": "maximize",
+#         "n_trials": 15,
+#         "target_class": 0,
+#         "opt_range": {
+#             "MonthlyIncome": [
+#                 20,
+#                 20
+#                 ],
+#             "WorkLifeBalance": [
+#                 0,
+#                 3
+#                 ]} 
+#     }
+# }
+
+
     
     model_config_path = update_config(model_config_path, config_updates)
     
@@ -158,7 +184,8 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/uploads/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+
 
     logger.info("🚀 AutoML 파이프라인 실행 시작!")    
     model_config_path, user_config_path, original_df = process_1(data_path)
