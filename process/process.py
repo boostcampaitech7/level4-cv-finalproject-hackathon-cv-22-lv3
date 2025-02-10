@@ -35,38 +35,41 @@ def process_2(model_config_path, user_config_path, original_df):
     '''
     logger.info("📊 사용자 설정을 업데이트합니다...")
     # 사용자한테 받은 dict_type을 통해 모델 config 업데이트
-    # config_updates = {
-    #     "target_feature": "Price",
-    #     "controllable_feature": [
-    #         "Longtitude",
-    #         "Lattitude",
-    #         "BuildingArea"
-    #     ],
-    #     "necessary_feature": [
-
-    #     ],
-    #     "limited_feature" : 4,
-    #     "model" : {
-    #         "time_to_train": 30,
-    #         "model_quality": "best"}
-    # }
-
+    # 02조
     config_updates = {
-    "target_feature": "Attrition",
-    "controllable_feature": [
-        "MonthlyIncome",
-        "WorkLifeBalance"
-    ],
-    "necessary_feature": [
-        "Age",
-        "Education",
-        "DistanceFromHome",
-        "OverTime"
-    ],
-    "limited_feature" : 10,
-    "model" : {
-        "time_to_train": 100,
-        "model_quality": "best"}}
+        "target_feature": "Price",
+        "controllable_feature": [
+            "Longtitude",
+            "Lattitude",
+            "BuildingArea"
+        ],
+        "necessary_feature": [
+
+        ],
+        "limited_feature" : 4,
+        "model" : {
+            "time_to_train": 30,
+            "model_quality": "best"}
+    }
+
+
+    # # 22조
+    # config_updates = {
+    # "target_feature": "Attrition",
+    # "controllable_feature": [
+    #     "MonthlyIncome",
+    #     "WorkLifeBalance"
+    # ],
+    # "necessary_feature": [
+    #     "Age",
+    #     "Education",
+    #     "DistanceFromHome",
+    #     "OverTime"
+    # ],
+    # "limited_feature" : 10,
+    # "model" : {
+    #     "time_to_train": 100,
+    #     "model_quality": "best"}}
     
     # 사용자에게 받은 것을 통해 업데이트
     model_config_path = update_config(model_config_path, config_updates)
@@ -102,66 +105,49 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
     controllable_feature = model_config["controllable_feature"]
     
     
-    ## 02조
-    # config_updates = {
-    #     "optimization": {
-    #         "direction": "maximize",
-    #         "n_trials": 10,
-    #         "target_class": 0,
-    #         "opt_range": {
-    #             "Longtitude": [
-    #                 20,
-    #                 20
-    #                 ],
-    #             "Lattitude" : [
-    #                 20,
-    #                 20
-    #             ],
-    #             "BuildingArea" : [
-    #                 20,
-    #                 20
-    #             ]
-    #                 } 
-    #     }
-    # }
-
-    # 06조
+    # 02조
     config_updates = {
         "optimization": {
             "direction": "maximize",
-            "n_trials": 15,
+            "n_trials": 10,
             "target_class": 0,
             "opt_range": {
-                "MonthlyIncome": [
+                "Longtitude": [
                     20,
                     20
                     ],
-                "WorkLifeBalance": [
-                    0,
-                    3
-                    ]} 
+                "Lattitude" : [
+                    20,
+                    20
+                ],
+                "BuildingArea" : [
+                    20,
+                    20
+                ]
+                    } 
         }
     }
 
 
-    
-#     #22조
-#     config_updates = {
-#     "optimization": {
-#         "direction": "maximize",
-#         "n_trials": 15,
-#         "target_class": 0,
-#         "opt_range": {
-#             "MonthlyIncome": [
-#                 20,
-#                 20
-#                 ],
-#             "WorkLifeBalance": [
-#                 0,
-#                 3
-#                 ]} 
-#     }
-# }
+    # # 22조
+    # config_updates = {
+    #     "optimization": {
+    #         "direction": "maximize",
+    #         "n_trials": 15,
+    #         "target_class": 0,
+    #         "opt_range": {
+    #             "MonthlyIncome": [
+    #                 20,
+    #                 20
+    #                 ],
+    #             "WorkLifeBalance": [
+    #                 0,
+    #                 3
+    #                 ]} 
+    #     }
+    # }
+
+
 
 
     
@@ -184,7 +170,7 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/WA_Fn-UseC_-HR-Employee-Attrition.csv'
+    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/melb_data.csv'
 
 
     logger.info("🚀 AutoML 파이프라인 실행 시작!")    

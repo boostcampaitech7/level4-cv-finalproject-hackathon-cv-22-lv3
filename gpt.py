@@ -5,6 +5,7 @@ import openai
 from omegaconf import OmegaConf
 from collections import defaultdict
 from config.update_config import update_config
+from optimization.feature_optimization import convert_to_serializable
 
 def gpt_solution(final_dict, model_config_path, user_config_path):
     """
@@ -36,7 +37,7 @@ def gpt_solution(final_dict, model_config_path, user_config_path):
         controllable_features = []
 
 
-    openai.api_key = os.getenv("OPENAI_API_KEY", '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')
+    openai.api_key = os.getenv("OPENAI_API_KEY", 'sk-proj-')
     if openai.api_key is None:
         raise ValueError("OPENAI_API_KEY 환경 변수가 설정되어 있지 않습니다!")
 
@@ -49,8 +50,8 @@ def gpt_solution(final_dict, model_config_path, user_config_path):
         results = final_dict.get('results', [])
         print(f"Number of results: {len(results)}")
 
-        direction = config.get('optimization', {}).get('direction', None)
-        target_feature = config.get('target_feature', None)
+        direction = model_config.get('optimization', {}).get('direction', None)
+        target_feature = model_config.get('target_feature', None)
         print(f'direction = {direction}')
         print(f'target_feature = {target_feature}')
 
@@ -121,6 +122,7 @@ def gpt_solution(final_dict, model_config_path, user_config_path):
         #  controllable feature들을 어떻게 조정하면 타겟 예측값이 원하는 방향으로 변화할 수 있을지 전략을 요청)
 
         user_message = (
+            "Don't give me an answer like “물론입니다.,” just give me a only solution."
             "Based on the following regression model feature change analysis, each result demonstrates how changes in controllable features affect the predicted value. "
             f"Our objective is to adjust the controllable features so that the target feature '{target_feature}' is optimized in the '{direction}' direction. \n\n"
             "Using a prescriptive AI approach, please provide detailed, actionable recommendations on how to modify the values of the controllable features (e.g., " 
@@ -154,12 +156,13 @@ def gpt_solution(final_dict, model_config_path, user_config_path):
             "solution": gpt_response_text
         }
 
-        return json.dumps(output_data, indent=4, ensure_ascii=False, default=convert_to_serializable)
+        update_config(user_config_path, output_data)
+        return user_config_path
 
-    # 2) 분류 (classification)인 경우는 기존 코드 사용
+
     elif task_type == 'classification':
-        optimization_direction = config.get('optimization', {}).get('direction', None)
-        target_class = config.get('optimization', {}).get('target_class', None)
+        optimization_direction = model_config.get('optimization', {}).get('direction', None)
+        target_class = model_config.get('optimization', {}).get('target_class', None)
 
         
         print(f"Target class: {target_class}")
@@ -232,6 +235,7 @@ def gpt_solution(final_dict, model_config_path, user_config_path):
 
 
         user_message = (
+            "Don't give me an answer like “물론입니다.” just give me a only solution."
             f"start say with Our model optimization results in a {ratio_changed_to_target} ratio to our desired target."
             "Based on the following feature change analysis and final results, our overall goal is to optimize the feature value for the target class "
             f"(value: {target_class}) by optimizing the feature value in the direction of '{optimization_direction}' direction. \n\n"
