@@ -102,6 +102,7 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
     model_config = OmegaConf.load(model_config_path)
     controllable_feature = model_config["controllable_feature"]
     
+    ## 02조
     # config_updates = {
     #     "optimization": {
     #         "direction": "maximize",
@@ -124,22 +125,45 @@ def process_3(model_config_path, model, test_df, preprocessed_df, preprocessor):
     #     }
     # }
 
+    # 06조
     config_updates = {
-    "optimization": {
-        "direction": "maximize",
-        "n_trials": 15,
-        "target_class": 0,
-        "opt_range": {
-            "MonthlyIncome": [
-                20,
-                20
-                ],
-            "WorkLifeBalance": [
-                0,
-                3
-                ]} 
+        "optimization": {
+            "direction": "maximize",
+            "n_trials": 15,
+            "target_class": 0,
+            "opt_range": {
+                "MonthlyIncome": [
+                    20,
+                    20
+                    ],
+                "WorkLifeBalance": [
+                    0,
+                    3
+                    ]} 
+        }
     }
-}
+
+
+
+
+    
+#     #22조
+#     config_updates = {
+#     "optimization": {
+#         "direction": "maximize",
+#         "n_trials": 15,
+#         "target_class": 0,
+#         "opt_range": {
+#             "MonthlyIncome": [
+#                 20,
+#                 20
+#                 ],
+#             "WorkLifeBalance": [
+#                 0,
+#                 3
+#                 ]} 
+#     }
+# }
     
     model_config_path = update_config(model_config_path, config_updates)
     
