@@ -35,22 +35,22 @@ def process_2(model_config_path, user_config_path, original_df):
     '''
     logger.info("📊 사용자 설정을 업데이트합니다...")
     # 사용자한테 받은 dict_type을 통해 모델 config 업데이트
-    # 02조
-    config_updates = {
-        "target_feature": "Price",
-        "controllable_feature": [
-            "Longtitude",
-            "Lattitude",
-            "BuildingArea"
-        ],
-        "necessary_feature": [
+    # # 02조
+    # config_updates = {
+    #     "target_feature": "Price",
+    #     "controllable_feature": [
+    #         "Longtitude",
+    #         "Lattitude",
+    #         "BuildingArea"
+    #     ],
+    #     "necessary_feature": [
 
-        ],
-        "limited_feature" : 4,
-        "model" : {
-            "time_to_train": 30,
-            "model_quality": "best"}
-    }
+    #     ],
+    #     "limited_feature" : 4,
+    #     "model" : {
+    #         "time_to_train": 30,
+    #         "model_quality": "best"}
+    # }
 
 
     # # 22조
@@ -70,6 +70,60 @@ def process_2(model_config_path, user_config_path, original_df):
     # "model" : {
     #     "time_to_train": 100,
     #     "model_quality": "best"}}
+
+
+    #     # 06조
+    # config_updates = {
+    #     "target_feature": "strength",
+    #     "controllable_feature": [
+    #         "cement",
+    #         "slag",
+    #         "ash",
+    #         "water",
+    #         "superplastic",
+    #         "coarseagg",
+    #         "fineagg",
+    #         "age"
+
+    #     ],
+    #     "necessary_feature": [
+
+    #     ],
+    #     "limited_feature" : 8,
+    #     "model" : {
+    #         "time_to_train": 30,
+    #         "model_quality": "best"}
+    # }
+
+
+    # 17조
+    config_updates = {
+        "target_feature": "Sales_amt",
+        "controllable_feature": [
+            "Wheelbase",
+            "Height",
+            "Width",
+            "Length",
+            "Seat_num",
+            "Door_num",
+            "Engine_size",
+            "Entry_price",
+            "Year",
+            "Predicted_viewpoint",
+            "First_release_year"
+
+        ],
+        "necessary_feature": [
+
+        ],
+        "limited_feature" : 11,
+        "model" : {
+            "time_to_train": 30,
+            "model_quality": "best"}
+    }
+
+
+
     
     # 사용자에게 받은 것을 통해 업데이트
     model_config_path = update_config(model_config_path, config_updates)
@@ -105,28 +159,48 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
     controllable_feature = model_config["controllable_feature"]
     
     
-    # 02조
-    config_updates = {
-        "optimization": {
-            "direction": "maximize",
-            "n_trials": 10,
-            "target_class": 0,
-            "opt_range": {
-                "Longtitude": [
-                    20,
-                    20
-                    ],
-                "Lattitude" : [
-                    20,
-                    20
-                ],
-                "BuildingArea" : [
-                    20,
-                    20
-                ]
-                    } 
-        }
-    }
+    # 06조
+    # config_updates = {
+    #     "optimization": {
+    #         "direction": "maximize",
+    #         "n_trials": 10,
+    #         "target_class": 0,
+    #         "opt_range": {
+    #             "cement": [
+    #                 20,
+    #                 20
+    #                 ],
+    #             "slag" : [
+    #                 20,
+    #                 20
+    #             ],
+    #             "ash" : [
+    #                 20,
+    #                 20
+    #             ],
+    #             "water": [
+    #                 20,
+    #                 20
+    #                 ],
+    #             "superplastic" : [
+    #                 20,
+    #                 20
+    #             ],
+    #             "coarseagg" : [
+    #                 20,
+    #                 20
+    #             ],
+    #             "fineagg" : [
+    #                 20,
+    #                 20
+    #             ],
+    #             "age" : [
+    #                 20,
+    #                 20
+    #             ]
+    #                 } 
+    #     }
+    # }
 
 
     # # 22조
@@ -147,8 +221,65 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
     #     }
     # }
 
-
-
+    # 17조
+    config_updates = {
+        "optimization": {
+            "direction": "maximize",
+            "n_trials": 15,
+            "target_class": 0,
+            "opt_range": {
+                "Wheelbase": [
+                    20,
+                    20
+                    ],
+                "Height": [
+                    20,
+                    20
+                    ],
+                "Width": [
+                    20,
+                    20
+                    ],
+                "Height": [
+                    20,
+                    20
+                    ],
+                "Length": [
+                    20,
+                    20
+                    ],
+                "Seat_num": [
+                    20,
+                    20
+                    ],
+                "Door_num": [
+                    20,
+                    20
+                    ],
+                "Engine_size": [
+                    20,
+                    20
+                    ],
+                "Entry_price": [
+                    20,
+                    20
+                    ],
+                "Year": [
+                    20,
+                    20
+                    ],
+                "Predicted_viewpoint": [
+                    20,
+                    20
+                    ],
+                "First_release_year": [
+                    20,
+                    20
+                    ],
+                    
+                    } 
+        }
+    }
 
     
     model_config_path = update_config(model_config_path, config_updates)
@@ -170,7 +301,7 @@ def process_3(model_config_path, user_config_path, model, preprocessed_df, prepr
 ## 현준 결과 보내기
     
 if __name__ == '__main__':
-    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/melb_data.csv'
+    data_path = '/data/ephemeral/home/level4-cv-finalproject-hackathon-cv-22-lv3/base_merged_data.csv'
 
 
     logger.info("🚀 AutoML 파이프라인 실행 시작!")    
