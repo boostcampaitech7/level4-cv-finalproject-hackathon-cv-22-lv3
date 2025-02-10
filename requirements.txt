@@ -13,3 +13,4 @@ autogluon==0.8.2
 pyyaml
 optuna==4.2.0
 imblearn
+openai==0.28.1
