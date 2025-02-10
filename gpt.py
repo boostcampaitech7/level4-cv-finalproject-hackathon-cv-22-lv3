@@ -148,7 +148,7 @@ def gpt_solution(final_dict, model_config_path):
         print(analysis_text)
 
         # API 키 설정 (환경 변수 또는 .env 파일 등을 사용)
-        openai.api_key = os.getenv("OPENAI_API_KEY", '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')
+        openai.api_key = os.getenv("OPENAI_API_KEY", '')
         if openai.api_key is None:
             raise ValueError("OPENAI_API_KEY 환경 변수가 설정되어 있지 않습니다!")
 
