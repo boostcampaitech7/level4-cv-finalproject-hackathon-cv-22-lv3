@@ -1,35 +1,38 @@
 import os.path as osp
 import json
-import logging
+from utils.logger_config import logger
 from datetime import datetime
 from omegaconf import OmegaConf
 
-def update_config(config_path, config_updates, user=False):
+import numpy as np
+
+def convert_numpy_types(data):
+    if isinstance(data, dict):
+        return {k: convert_numpy_types(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [convert_numpy_types(item) for item in data]
+    elif isinstance(data, np.generic):
+        return data.item()  # NumPy scalar를 Python 기본형으로 변환
+    else:
+        return data
+        
+
+def update_config(config_path, config_updates):
     '''
     '''
     try:
         config = OmegaConf.load(config_path)
-        logging.info(f"설정 파일 로드 완료 : {config_path}")
+        logger.info(f"설정 파일 로드 완료 : {config_path}")
     except FileNotFoundError:
-        logging.warning(f"파일을 찾을 수 없습니다.")
+        logger.warning(f"파일을 찾을 수 없습니다.")
     
+    config_updates = convert_numpy_types(config_updates)
     updated_config = OmegaConf.merge(config, OmegaConf.create(config_updates))
 
-    if user:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")        
-        save_path = osp.dirname(config_path)
-        user_config_filename = f"{timestamp}_user_config.json"
-        user_config_path = osp.join(save_path, user_config_filename)
-
-        with open(user_config_path, 'w', encoding='utf-8') as f:
-            json.dump(OmegaConf.to_container(updated_config, resolve=True), f, indent=4, ensure_ascii=False)
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(OmegaConf.to_container(updated_config, resolve=True), f, indent=4, ensure_ascii=False)
         
-        logging.info(f"사용자 설정 업데이트 완료 : {config_path}")
-    else:
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(OmegaConf.to_container(updated_config, resolve=True), f, indent=4, ensure_ascii=False)
-        
-        logging.info(f"모델 설정 업데이트 완료 : {config_path}")
+        logger.info(f"설정 파일 업데이트 완료 : {config_path}")
 
     return config_path
 
