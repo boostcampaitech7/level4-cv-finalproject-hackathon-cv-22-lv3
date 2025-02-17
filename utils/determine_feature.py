@@ -1,56 +1,51 @@
-import logging
 from omegaconf import OmegaConf
 import pandas as pd
 from config.update_config import update_config
 from utils.logger_config import logger
 
+
 def determine_problem_type(config_path, threshold=10):
-    """해당 Task가 어떤 종류의 Task인지 구분합니다.
+    """
+    Determine the problem type (binary, multiclass, or regression) based on the target
+    feature in the dataset and update the configuration accordingly.
 
-    Args:
-        data (csv): 학습할 데이터를 받아옵니다.
-        target (string): 목표로 하는 Feature를 의미합니다.
-        threshold (int, optional): threshold 보다 적은 고유 종류를 갖는다면 다중분류 문제로 분류합니다. Defaults to 10.
+    Parameters
+        config_path : str
+            Path to the configuration file.
+        threshold : int, optional
+            Maximum number of unique values for a numeric target to be considered multiclass,
+            by default 10.
 
-    Raises:
-        ValueError: target이 학습 데이터에 존재하지 않는 경우
-
-    Returns:
-        string: 해당 task의 종류
+    Raises
+        ValueError
+            If the target feature is not present in the dataset or if it has only one unique value.
     """
     config = OmegaConf.load(config_path)
-    
     target = config["target_feature"]
     data = pd.read_csv(config["data_path"])
-    
+
     if target not in data.columns:
-        raise ValueError(f"타겟 컬럼 '{target}'이 데이터에 존재하지 않습니다.")
-    
+        raise ValueError(f"Target column '{target}' is not present in the dataset.")
+
     target_series = data[target]
-    
+    num_unique = target_series.nunique()
+
     if pd.api.types.is_numeric_dtype(target_series):
-        num_unique = target_series.nunique()
         if num_unique <= 2:
-            logger.info("task 설정 : binary classification")
-            config_updates = {"task": 'binary'}
-            update_config(config_path, config_updates)
+            logger.info("Setting task: binary classification")
+            update_config(config_path, {"task": "binary"})
         elif num_unique <= threshold:
-            logger.info("task 설정 : multiclass classification")
-            config_updates = {"task": 'multiclass'}
-            update_config(config_path, config_updates)
+            logger.info("Setting task: multiclass classification")
+            update_config(config_path, {"task": "multiclass"})
         else:
-            logger.info("task 설정 : regression")
-            config_updates = {"task": 'regression'}
-            update_config(config_path, config_updates)
+            logger.info("Setting task: regression")
+            update_config(config_path, {"task": "regression"})
     else:
-        num_unique = target_series.nunique()
         if num_unique == 2:
-            logger.info("task 설정 : binary classification")
-            config_updates = {"task": 'binary'}
-            update_config(config_path, config_updates)
+            logger.info("Setting task: binary classification")
+            update_config(config_path, {"task": "binary"})
         elif num_unique > 2:
-            logger.info("task 설정 : multiclass classification")
-            config_updates = {"task": 'multiclass'}
-            update_config(config_path, config_updates)
+            logger.info("Setting task: multiclass classification")
+            update_config(config_path, {"task": "multiclass"})
         else:
-            raise ValueError(f"타겟 컬럼 '{target}'은(는) 고유 값이 하나뿐입니다.")
+            raise ValueError(f"Target column '{target}' has only one unique value.")

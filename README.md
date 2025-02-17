@@ -37,3 +37,5 @@ python main.py --config /path/to/config
 
 ![image](https://github.com/user-attachments/assets/4d89798b-c9e7-4230-a17e-a25aa7fb4b40)
 
+# 성능 지표
+
