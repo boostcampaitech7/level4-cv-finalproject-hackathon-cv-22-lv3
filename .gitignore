@@ -1,0 +1,12 @@
+*.csv
+*.pkl
+*.json
+*.pt
+AutogluonModels
+*.pyc
+*.html
+ydata_profiling
+test_optim
+logs
+*.log
+test_env
